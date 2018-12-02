@@ -57,7 +57,7 @@ function partTwo (inputFile)
             end
           end);
   until found;
-  return part2Result;
+  return result;
 end
 
 ---------------------------------------
