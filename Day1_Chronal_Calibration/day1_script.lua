@@ -82,6 +82,9 @@ end
 
 ---------------------------------------
 -- IN PROGRESS (maybe...)
+-- A better solution could be to group same sign together
+-- Which allow to make bigger steps and not parse lines by lines.
+-- If we see that taking a step make us... NOP nvm will fall to a line by line traitement :'(
 ---------------------------------------
 local precedentSign = '';
 function partTwoBis (inputFile)
