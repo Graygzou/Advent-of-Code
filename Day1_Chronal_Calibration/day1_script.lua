@@ -1,5 +1,5 @@
 -- Variables
-local part1Result = 0; -- this should be a protected variables if the program is multithreated.
+local part1Result = 0; -- this should be a protected variables if the program is multi-threated.
 local part2Result = 0;
 local filename = "input.txt";
 local mode = "r";
@@ -20,7 +20,10 @@ function main ()
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, mode));
 
-  --partOne(inputFile);
+  -- Launch the answer for the part one.
+  partOne(inputFile);
+
+  -- Launch the answer for the part two.
   partTwo(inputFile);
 
   -- Finally close the file
@@ -42,8 +45,6 @@ function partOne (inputFile)
   print(result);
 end
 
-local precedentSign = '';
-
 ---------------------------------------
 -- function used for the part two
 ---------------------------------------
@@ -56,16 +57,14 @@ function partTwo (inputFile)
 
   local cumulFrenquency = 0;
   local found = false;
-  frequencies = Set{0,};
+  frequencies = Set{0};
   repeat
     res = string.gsub(lines, ".-[\n]", function (val)
             -- We do not iterate if the result is already found.
             if not found then
               -- Update the cumul result
               cumulFrenquency = cumulFrenquency + val;
-              --print(cumulFrenquency);
 
-              --print(frequencies[cumulFrenquency]);
               if frequencies[cumulFrenquency] then
               -- Update the flag
                 found = true;
@@ -73,27 +72,14 @@ function partTwo (inputFile)
               else
                 -- Update the set
                 frequencies[cumulFrenquency] = true;
-                print(frequencies[cumulFrenquency]);
               end
-
-              --[[
-              currentSign = string.sub(val, 0, 1);
-              if currentSign == precedentSign then
-                print(val);
-                part2Result = cumulFrenquency;
-              else
-                -- Check if the goal is reached
-                found = (part2Result == 0);
-                -- Change the value of the
-                precedentSign = string.sub(val, 0, 1);
-              end
-              --]]
             end
           end);
   until found;
   print(part2Result);
 end
 
+local precedentSign = '';
 ---------------------------------------
 -- IN PROGRESS (maybe...)
 ---------------------------------------
@@ -119,7 +105,6 @@ function partTwoBis (inputFile)
                 -- Change the value of the
                 precedentSign = string.sub(val, 0, 1);
               end
-            end
           end);
   until found;
   print(part2Result);
