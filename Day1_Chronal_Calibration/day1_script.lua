@@ -1,6 +1,4 @@
 -- Variables
-local part1Result = 0; -- this should be a protected variables if the program is multi-threated.
-local part2Result = 0;
 local filename = "input.txt";
 local mode = "r";
 
@@ -14,50 +12,33 @@ function Set (list)
 end
 
 ---------------------------------------
--- function main
----------------------------------------
-function main ()
-  -- Read the input file and put it in a file handle
-  local inputFile = assert(io.open(filename, mode));
-
-  -- Launch the answer for the part one.
-  partOne(inputFile);
-
-  -- Launch the answer for the part two.
-  partTwo(inputFile);
-
-  -- Finally close the file
-  inputFile:close();
-end
-
----------------------------------------
 -- function used for the part one
 ---------------------------------------
 function partOne (inputFile)
+  local result = 0;
+
   -- Read the file line by line
   line = inputFile:read()   -- Call the read method on the handle with the colon syntax
   while line ~= nil do
-    part1Result = part1Result + line;
+    result = result + line;
     line = inputFile:read()
   end
-
-  -- Print the final result
-  print(result);
+  return result;
 end
 
 ---------------------------------------
 -- function used for the part two
 ---------------------------------------
 function partTwo (inputFile)
-  lines = inputFile:read("*all");
-
-  -- Get the sign of the first number
-  --precedentSign = string.sub(lines, 0, 1);
-  --print(precedentSign);
-
+  local result = 0;
   local cumulFrenquency = 0;
   local found = false;
   frequencies = Set{0};
+
+  -- Read the entire file at once.
+  lines = inputFile:read("*all");
+
+  -- Start the algorithm
   repeat
     res = string.gsub(lines, ".-[\n]", function (val)
             -- We do not iterate if the result is already found.
@@ -68,7 +49,7 @@ function partTwo (inputFile)
               if frequencies[cumulFrenquency] then
               -- Update the flag
                 found = true;
-                part2Result = cumulFrenquency;
+                result = cumulFrenquency;
               else
                 -- Update the set
                 frequencies[cumulFrenquency] = true;
@@ -76,13 +57,33 @@ function partTwo (inputFile)
             end
           end);
   until found;
-  print(part2Result);
+  return part2Result;
 end
 
-local precedentSign = '';
+---------------------------------------
+-- function main
+---------------------------------------
+function main ()
+  -- Read the input file and put it in a file handle
+  local inputFile = assert(io.open(filename, mode));
+
+  -- Launch and print the final result
+  print("Result part one :", partOne(inputFile));
+
+  -- Reset the file handle position to the beginning to use it again
+  inputFile:seek("set");
+
+  -- Launch and print the final result
+  print("Result part two :", partTwo(inputFile));
+
+  -- Finally close the file
+  inputFile:close();
+end
+
 ---------------------------------------
 -- IN PROGRESS (maybe...)
 ---------------------------------------
+local precedentSign = '';
 function partTwoBis (inputFile)
   lines = inputFile:read("*all");
 
