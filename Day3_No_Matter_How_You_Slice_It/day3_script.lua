@@ -109,16 +109,16 @@ function bubbleSortRectangle (rectangleArray, param1, param2)
   return resArray;
 end
 
+
 --------------------------------------
 -- EVENT BETTER
 ---------------------------------------
-function bubbleSortRectangle (rectangleArray, param1, param2)
+function bubbleSortRectangleArea (rectangleArray, param1, param2)
   local resArray = rectangleArray
 
   for i=#rectangleArray,1,-1 do
     for j=2,i do
-      if tonumber(resArray[j-1][param1]) > tonumber(resArray[j][param1]) or
-        tonumber(resArray[j-1][param1]) == tonumber(resArray[j][param1]) and tonumber(resArray[j-1][param2]) > tonumber(resArray[j][param2]) then
+      if tonumber(resArray[j-1][param1]) * tonumber(resArray[j-1][param2]) > tonumber(resArray[j][param1]) * tonumber(resArray[j][param2]) then
         temp = resArray[j-1];
         resArray[j-1] = resArray[j];
         resArray[j] = temp;
@@ -130,46 +130,75 @@ function bubbleSortRectangle (rectangleArray, param1, param2)
 end
 
 
+--#################################################################
+-- IsContainRect - Return true if the rect1 contained the rect2, false otherwise
+--#################################################################
+function IsContainRect(rect1, rect2)
+  return (tonumber(rect2[2]) > tonumber(rect1[2]) and
+          tonumber(rect2[3]) > tonumber(rect1[3]) and
+          tonumber(rect2[2])+rect2[4] < tonumber(rect1[2])+tonumber(rect1[4]) and
+          tonumber(rect2[3])+tonumber(rect2[5]) < tonumber(rect1[3])+tonumber(rect1[5]));
+end
+------------------------------------------------------------------
+-- TESTS
+print(IsContainRect({"#4", "486", "680", "13", "15"}, {"#1", "0", "0", "2002", "2002"}));  --false
+print(IsContainRect({"#1", "0", "0", "2002", "2002"}, {"#65", "486", "680", "13", "15"}));  --true
+print(IsContainRect({"#66", "3", "3", "1602", "1602"}, {"#55", "486", "680", "13", "15"}));  --true
+print(IsContainRect({"#5", "5", "5", "1502", "1502"}, {"#1", "0", "0", "2005", "2005"}));  --false
+
+
+--#################################################################
+-- MergeRectangles - TODO
+--#################################################################
 function MergeRectangles(lineStruct2)
+  local exSet = lineStruct2;
   local newSet = {};
   local ind = 1;
 
-  for i=1,#lineStruct2 do
-    local rect = lineStruct2[i];
-    newSet[ind] = rect[1];
-    ind = ind + 1;
+  for i=1,#exSet do
+    print(i);
+    local rect = exSet[i];
+    if rect ~= nil then
+      print(rect[1]);
+      for j=i+1,#exSet do
+        if exSet[j] ~= nil then
+          print(exSet[j][1]);
 
-    for j=i+1,#lineStruct2 do
-      -- check if we can merge the current rectangle into the above one.
-      if (tonumber(lineStruct2[j][2]) > tonumber(rect[2]) and
-        tonumber(lineStruct2[j][3]) > tonumber(rect[3]) and
-        tonumber(lineStruct2[j][2])+lineStruct2[j][4] < tonumber(rect[2])+tonumber(rect[4]) and
-        tonumber(lineStruct2[j][3])+tonumber(lineStruct2[j][5]) < tonumber(rect[3])+tonumber(rect[5])) or
-        (tonumber(lineStruct2[j][2]) < tonumber(rect[2]) and
-          tonumber(lineStruct2[j][3]) < tonumber(rect[3]) and
-          tonumber(lineStruct2[j][2])+lineStruct2[j][4] > tonumber(rect[2])+tonumber(rect[4]) and
-          tonumber(lineStruct2[j][3])+tonumber(lineStruct2[j][5]) > tonumber(rect[3])+tonumber(rect[5])) then
-        -- Remove the rect from the list
-        -- so nothing
-      else
-        print(lineStruct2[j][1]);
-        newSet[ind] = lineStruct2[j][1];
-        ind = ind + 1;
+          -- check if we can merge the current rectangle into the above one.
+          if IsContainRect(rect, exSet[j]) then
+            -- Remove the rect from the list
+            -- so nothing
+            print("erase1");
+            table.insert(newSet, rect);
+            table.remove(exSet, i);
+          elseif IsContainRect(exSet[j], rect) then
+            print("erase2");
+            table.insert(newSet, exSet[j]);
+            table.remove(exSet, j);
+          else
+            print("add");
+            table.insert(newSet, lineStruct2[j][1])
+            ind = ind + 1;
+          end
+        end
       end
     end
   end
 
   print(#newSet);
 
+  --[[
   for i=1,#newSet do
     print(newSet[i][1]);
   end
+  --]]
 
+  return newSet;
 end
 
----------------------------------------
+--#################################################################
 -- function used for the part one
----------------------------------------
+--#################################################################
 function PartOne (inputFile)
 
   -- Read the entire file at once.
@@ -207,13 +236,16 @@ function PartOne (inputFile)
         end);
   local lineStruct2 = bubbleSortRectangle(lineStruct, 2, 3);
 
-  MergeRectangles(lineStruct2);
-
-  --local lineStruct2 = bubbleSortRectangle(lineStruct, 3, 2);
-  --print(lineStruct2[1][1]);
   for i=1,#lineStruct2 do
     print(lineStruct2[i][1] .. "," .. lineStruct2[i][2] .. "," .. lineStruct2[i][3] .. "," ..  lineStruct2[i][4] .. "," .. lineStruct2[i][5]);
   end
+
+  --local lineStruct2 = bubbleSortRectangle(lineStruct, 3, 2);
+
+  MergeRectangles(lineStruct2);
+
+  --print(lineStruct2[1][1]);
+
   return 0;
 end
 
