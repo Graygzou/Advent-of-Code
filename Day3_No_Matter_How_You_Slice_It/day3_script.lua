@@ -1,8 +1,21 @@
 -- Variables
-local filename = "inputTestParse.txt";
+local filename = "input.txt";
 local mode = "r";
 
 day2 = {}
+
+--#################################################################
+-- ToStringArray - Return true if the rect1 contained the rect2, false otherwise
+--#################################################################
+function ToStringArray(array)
+  for i=1,#array do
+    local string = "";
+    for j=1,#array[i] do
+      string = string .. array[i][j] .. ",";
+    end
+    print(string);
+  end
+end
 
 ---------------------------------------
 -- Helper function for set data structure
@@ -54,6 +67,8 @@ function SplitString(string, separators)
 
   return result;
 end
+
+
 
 --------------------------------------
 -- Helpers function to execute a bubble sort
@@ -133,18 +148,45 @@ end
 --#################################################################
 -- IsContainRect - Return true if the rect1 contained the rect2, false otherwise
 --#################################################################
-function IsContainRect(rect1, rect2)
-  return (tonumber(rect2[2]) > tonumber(rect1[2]) and
-          tonumber(rect2[3]) > tonumber(rect1[3]) and
-          tonumber(rect2[2])+rect2[4] < tonumber(rect1[2])+tonumber(rect1[4]) and
-          tonumber(rect2[3])+tonumber(rect2[5]) < tonumber(rect1[3])+tonumber(rect1[5]));
+function IsContainRect (rect1, rect2)
+  local maxWidth = {tonumber(rect1[2])+tonumber(rect1[4]), tonumber(rect2[2])+tonumber(rect2[4])};
+  local maxHeight = {tonumber(rect1[3])+tonumber(rect1[5]), tonumber(rect2[3])+tonumber(rect2[5])};
+
+  --[[
+  print(maxWidth[1]);
+  print(maxWidth[2]);
+  print(maxHeight[1]);
+  print(maxHeight[2]);
+  --]]
+
+  return ((tonumber(rect2[2])) >= (tonumber(rect1[2]))) and
+          ((tonumber(rect2[3])) >= (tonumber(rect1[3]))) and
+          (tonumber(maxWidth[2]) <= tonumber(maxWidth[1])) and
+          (tonumber(maxHeight[2]) <= tonumber(maxHeight[1]));
 end
 ------------------------------------------------------------------
 -- TESTS
+--[[
 print(IsContainRect({"#4", "486", "680", "13", "15"}, {"#1", "0", "0", "2002", "2002"}));  --false
 print(IsContainRect({"#1", "0", "0", "2002", "2002"}, {"#65", "486", "680", "13", "15"}));  --true
 print(IsContainRect({"#66", "3", "3", "1602", "1602"}, {"#55", "486", "680", "13", "15"}));  --true
 print(IsContainRect({"#5", "5", "5", "1502", "1502"}, {"#1", "0", "0", "2005", "2005"}));  --false
+--]]
+
+--#################################################################
+-- GetOverlappingPoints - TODO
+--#################################################################
+function GetOverlappingPoints (rect1, rect2)
+  points = {};
+
+  for i=math.max(rect1[2], rect2[2]),math.min(rect1[2]+rect1[4], rect2[2]+rect2[4]) do
+    for j=math.max(),math.min() do
+      table.insert(points, tonumber(i * j));
+    end
+  end
+
+  return points;
+end
 
 
 --#################################################################
@@ -153,37 +195,60 @@ print(IsContainRect({"#5", "5", "5", "1502", "1502"}, {"#1", "0", "0", "2005", "
 function MergeRectangles(lineStruct2)
   local exSet = lineStruct2;
   local newSet = {};
-  local ind = 1;
+  local knownPoints = Set{};
+
+  local eraseRect = false;
 
   for i=1,#exSet do
-    print(i);
     local rect = exSet[i];
     if rect ~= nil then
       print(rect[1]);
+
       for j=i+1,#exSet do
         if exSet[j] ~= nil then
           print(exSet[j][1]);
-
           -- check if we can merge the current rectangle into the above one.
           if IsContainRect(rect, exSet[j]) then
             -- Remove the rect from the list
-            -- so nothing
             print("erase1");
+            eraseRect = true;
+
+            ------
+            -- the new one should take the lead.... Maybe not..
+            ------
+
             table.insert(newSet, rect);
-            table.remove(exSet, i);
-          elseif IsContainRect(exSet[j], rect) then
-            print("erase2");
-            table.insert(newSet, exSet[j]);
             table.remove(exSet, j);
+
+          elseif IsContainRect(exSet[j], rect) then
+
+            print("erase2");
+            table.insert(newSet, exSet[j][1]);
+            table.remove(exSet, i);
+
           else
-            print("add");
-            table.insert(newSet, lineStruct2[j][1])
-            ind = ind + 1;
+            --print("nothing...");
+            -- Add overlaping index to a Set.
+
+            points = GetOverlappingPoints();
+
+            -- For each point in the overlapping zone
+            for k =1,#points do
+              if not frequencies[points[k]] then
+                -- Update the set
+                knownPoints[points[k]] = true;
+              end
+            end
           end
         end
       end
+      if not eraseRect then
+        table.insert(newSet, rect);
+      end
     end
   end
+
+  print("RESULTAT");
 
   print(#newSet);
 
@@ -193,7 +258,9 @@ function MergeRectangles(lineStruct2)
   end
   --]]
 
-  return newSet;
+  print("END");
+
+  return #knownPoints;
 end
 
 --#################################################################
@@ -242,7 +309,7 @@ function PartOne (inputFile)
 
   --local lineStruct2 = bubbleSortRectangle(lineStruct, 3, 2);
 
-  MergeRectangles(lineStruct2);
+  print(MergeRectangles(lineStruct2));
 
   --print(lineStruct2[1][1]);
 
