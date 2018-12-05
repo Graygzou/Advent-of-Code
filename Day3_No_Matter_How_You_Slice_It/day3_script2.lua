@@ -71,9 +71,9 @@ function PartOne (inputFile)
     "\n",
   };
 
-  local borneMax = 1200;
+  local borneMax = 1000;
 
-  local lineStruct = {};
+  local rectangles = {};
 
   -- rects that are claimed by two or more elfs.
   finalSet = {}
@@ -88,11 +88,16 @@ function PartOne (inputFile)
 
   local indice = 1;
 
+  lastRectangleID = "";
+
   -- Post processing : parse the string and save them in a Set.
   local lines = string.gsub(lines, ".-[\n]", function (val)
           t = SplitString(val, separators);
 
-          -- [[
+          rectangles[indice] = t;
+          indice = indice + 1;
+
+          --[[
           print(t[2])
           print(t[3])
           print(t[4])
@@ -107,17 +112,25 @@ function PartOne (inputFile)
           --]]
 
           -- Current Rectangle
+          local trueRectangle = true;
+
           for i=tonumber(t[2]+1),tonumber(t[2]+t[4]) do
             for j=t[3]+1,t[3]+t[5] do
-              print(i);
-              print(j);
               finalSet[i][j] = finalSet[i][j] + 1;
-              --print(finalSet[i][j]);
+
+
+              trueRectangle = trueRectangle and (finalSet[i][j] == 1);
             end
           end
 
-          lineStruct[indice] = t;
-          indice = indice + 1;
+          print(trueRectangle);
+
+          if trueRectangle then
+            lastRectangleID = t[1];
+          end
+
+          --lineStruct[indice] = t;
+          --indice = indice + 1;
 
         end);
 
@@ -139,6 +152,34 @@ function PartOne (inputFile)
   end
 
   print(finalCounter);
+
+  ----------------------------------------
+  --- Find the holy rectangle
+  ----------------------------------------
+
+  for rec=1,#rectangles do
+
+    local t = {}
+    t = rectangles[rec];
+
+    -- Current Rectangle
+    local trueRectangle = true;
+
+    for i=tonumber(t[2]+1),tonumber(t[2]+t[4]) do
+      for j=t[3]+1,t[3]+t[5] do
+        trueRectangle = trueRectangle and (finalSet[i][j] == 1);
+      end
+    end
+
+    print(trueRectangle);
+
+    if trueRectangle then
+      lastRectangleID = t[1];
+    end
+  end
+
+
+  print(lastRectangleID);
 
   return 0;
 end
