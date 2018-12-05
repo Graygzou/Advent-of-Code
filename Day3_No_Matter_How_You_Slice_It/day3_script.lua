@@ -1,5 +1,5 @@
 -- Variables
-local filename = "input.txt";
+local filename = "inputTestParse.txt";
 local mode = "r";
 
 day2 = {}
@@ -176,26 +176,102 @@ print(IsContainRect({"#5", "5", "5", "1502", "1502"}, {"#1", "0", "0", "2005", "
 --#################################################################
 -- GetOverlappingPoints - TODO
 --#################################################################
-function GetOverlappingPoints (rect1, rect2)
-  points = {};
+function GetNumberOverlappingPoints (rect1, rect2, existingPoints)
+  value = 0;
 
-  for i=math.max(rect1[2], rect2[2]),math.min(rect1[2]+rect1[4], rect2[2]+rect2[4]) do
-    for j=math.max(),math.min() do
-      table.insert(points, tonumber(i * j));
+  local startJIndex = 0;
+  local lengthJ = 0;
+  if tonumber(rect1[2]) > tonumber(rect2[2]) then
+    startJIndex = rect1[2];
+    lengthJ = rect2[2]+rect2[4] - startJIndex;
+  elseif tonumber(rect1[2]) == tonumber(rect2[2]) then
+    startJIndex = rect1[2];
+    lengthJ = math.max(rect2[4], rect1[4]) - startJIndex;
+  else
+    startJIndex = rect2[2];
+    lengthJ = rect1[2]+rect1[4] - startJIndex;
+  end
+
+  --print(startJIndex);
+  --print(lengthJ);
+
+  local startIIndex = 0;
+  local lengthI = 0;
+  if tonumber(rect1[3]) > tonumber(rect2[3]) then
+    startIIndex = rect1[3];
+    lengthI = rect2[3]+rect2[5] - startIIndex;
+  elseif tonumber(rect1[3]) == tonumber(rect2[3]) then
+    print(math.max(rect2[5], rect1[5]));
+    startIIndex = rect1[3];
+    lengthI = math.max(rect2[5], rect1[5]) - startIIndex;
+  else
+    startIIndex = rect2[3];
+    lengthI = rect1[3]+rect1[5] - startIIndex;
+  end
+
+  --print(startIIndex);
+  --print(lengthI);
+
+  --print(#existingPoints);
+
+  tempStruc = Set{};
+  tempStruc2 = {}
+
+  for j=startJIndex,(startJIndex+lengthJ-1) do
+    for i=startIIndex,(startIIndex+lengthI-1) do
+      local key = (j * 1000 + i);
+      if tempStruc ~= nil then
+        if not tempStruc[key] then
+          print("HRTE" .. key)
+          tempStruc[key] = true;
+          table.insert(tempStruc2, key);
+          -- Update the existingPoint List
+          value = value + 1;
+        end
+      end
     end
   end
 
-  return points;
+  --print(table.getn(tempStruc2));
+
+  for i=1,#tempStruc2 do
+    print(tempStruc2[i]);
+  end
+
+  existingPoints = tempStruc;
+
+
+
+  return value, existingPoints;
 end
+------------------------------------------------------------------
+-- TESTS
+-- Regular tests
+print(GetNumberOverlappingPoints({"#1", "1", "3", "4", "4"}, {"#2", "3", "1", "4", "4"}) == 4);
+print(GetNumberOverlappingPoints({"#1", "1", "3", "4", "4"}, {"#2", "3", "1", "6", "6"}) == 8);
+print(GetNumberOverlappingPoints({"#2", "3", "1", "4", "4"}, {"#1", "1", "3", "4", "4"}) == 4);
+print(GetNumberOverlappingPoints({"#2", "3", "1", "6", "6"}, {"#1", "1", "3", "4", "4"}) == 8);
+
+-- Share the same edge
+print(GetNumberOverlappingPoints({"#2", "3", "3", "6", "6"}, {"#1", "1", "3", "4", "4"}) == 6);
+print(GetNumberOverlappingPoints({"#1", "1", "3", "4", "4"}, {"#2", "3", "3", "6", "6"}) == 6);
+print(GetNumberOverlappingPoints({"#1", "1", "3", "4", "4"}, {"#2", "1", "1", "4", "4"}) == 6);
+print(GetNumberOverlappingPoints({"#2", "1", "1", "4", "4"}, {"#1", "1", "3", "4", "4"}) == 6);
+
+--
+print(GetNumberOverlappingPoints({"#2", "3", "3", "4", "4"}, {"#1", "1", "1", "4", "4"}) == 4);
+
 
 
 --#################################################################
 -- MergeRectangles - TODO
 --#################################################################
 function MergeRectangles(lineStruct2)
+  local points = 0;   -- Final number !
+
   local exSet = lineStruct2;
   local newSet = {};
-  local knownPoints = Set{};
+  knownPoints = Set{};
 
   local eraseRect = false;
 
@@ -211,11 +287,10 @@ function MergeRectangles(lineStruct2)
           if IsContainRect(rect, exSet[j]) then
             -- Remove the rect from the list
             print("erase1");
-            eraseRect = true;
-
             ------
             -- the new one should take the lead.... Maybe not..
             ------
+            newPoints, knownPoints = GetNumberOverlappingPoints(rect, exSet[j], knownPoints);
 
             table.insert(newSet, rect);
             table.remove(exSet, j);
@@ -223,22 +298,22 @@ function MergeRectangles(lineStruct2)
           elseif IsContainRect(exSet[j], rect) then
 
             print("erase2");
+            
+            newPoints, knownPoints = GetNumberOverlappingPoints(rect, exSet[j], knownPoints);
+
             table.insert(newSet, exSet[j][1]);
             table.remove(exSet, i);
-
           else
-            --print("nothing...");
-            -- Add overlaping index to a Set.
+            -- Here rectangle are far from each other or overlapping each other.
+            -- So we add overlaping index to a final set.
+            print("overlap");
 
-            points = GetOverlappingPoints();
+            newPoints, knownPoints = GetNumberOverlappingPoints(rect, exSet[j], knownPoints);
 
-            -- For each point in the overlapping zone
-            for k =1,#points do
-              if not frequencies[points[k]] then
-                -- Update the set
-                knownPoints[points[k]] = true;
-              end
-            end
+            point = points + newPoints;
+
+            -- Remove the current rectangle to not deal with it when treating the j rectangle
+            table.remove(exSet, i);
           end
         end
       end
@@ -250,7 +325,8 @@ function MergeRectangles(lineStruct2)
 
   print("RESULTAT");
 
-  print(#newSet);
+  print(points);
+  print(points/2);
 
   --[[
   for i=1,#newSet do
