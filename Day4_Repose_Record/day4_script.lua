@@ -1,5 +1,5 @@
 -- Variables
-local filename = "inputFakeShuffle.txt";
+local filename = "input.txt";
 local mode = "r";
 
 --#################################################################
@@ -39,7 +39,6 @@ function StudyGuardActivities(activities)
     end
   end
   return finalString;
-  --"............................................................";
 end
 
 
@@ -48,14 +47,15 @@ end
 ---------------------------------------
 function bubbleSortRecord (lines)
   local resStruct = lines;
-  print(resStruct[1])
+
   for i=#resStruct,1,-1 do
     for j=1,#resStruct-1 do
-      print(resStruct[j]);
-      print(resStruct[j+1]);
+      --print(resStruct[j]);
+      --print(resStruct[j+1]);
       datej = SplitString(resStruct[j], {"%]", "%-", "%s", "%:"});
       datejplus = SplitString(resStruct[j+1], {"%]", "%-", "%s", "%:"});
 
+      --[[
       print(datej[1]);
       print(datejplus[1]);
       print(datej[2]);
@@ -66,6 +66,7 @@ function bubbleSortRecord (lines)
       print(datejplus[4]);
       print(datej[5]);
       print(datejplus[5]);
+      --]]
 
       -- Start with the month
       if tonumber(datejplus[2]) < tonumber(datej[2]) then
@@ -79,8 +80,8 @@ function bubbleSortRecord (lines)
         resStruct[j+1] = temp;
       else
         -- Hours and minutes
-        if tonumber(datej[4]) == 23 then
-          if tonumber(datejplus[4]) == 0 then
+        if tonumber(datejplus[4]) == 23 then
+          if tonumber(datej[4]) == 0 then
             local temp = resStruct[j];
             resStruct[j] = resStruct[j+1];
             resStruct[j+1] = temp;
@@ -162,8 +163,8 @@ end
 function BuildStringHeader()
   stringHeader = "Date   ID   Minute\n";
 
-  stringHeader = stringHeader .. "            000000000011111111112222222222333333333344444444445555555555\n";
-  stringHeader = stringHeader .. "            012345678901234567890123456789012345678901234567890123456789";
+  stringHeader = stringHeader .. "              000000000011111111112222222222333333333344444444445555555555\n";
+  stringHeader = stringHeader .. "              012345678901234567890123456789012345678901234567890123456789";
 
   return stringHeader;
 end
@@ -208,11 +209,12 @@ function PartOne (inputFile)
     print(daysss[i]);
   end
 
-
+  local uniqueID;
 
   --
   -- start the algorithm here
   --
+  print("START !")
   for i=1,#daysss do
       val = daysss[i];
 
@@ -232,23 +234,25 @@ function PartOne (inputFile)
       --]]
 
       date = SplitString(t[1], {"%-"});
+      time = SplitString(t[2], {"%:"});
 
       found, newGuardNumber = RetrieveGuardNumber(a[2]);
       if found then
-        --print("NEW GUARD :" .. newGuardNumber);
+        print("NEW GUARD :" .. newGuardNumber);
 
         -- Change the guard number
         guardNumber = newGuardNumber
 
+        -- Compute a unique ID which is the guardnumber + the date on which is operating;
+        print(guardNumber);
+        uniqueID = guardNumber .. date[2] .. date[3] .. time[1] .. time[2];
+
         -- Insert the index to retrieve it easily later on.
-        table.insert(guardsIndex, guardNumber .. date[3]);
+        table.insert(guardsIndex, uniqueID);
       end
 
-      time = SplitString(t[2], {"%:"});
 
-      -- Compute a unique ID which is the guardnumber + the date on which is operating;
-      print(guardNumber);
-      uniqueID = guardNumber .. date[3];
+      print(uniqueID);
 
       -- Store the time of the current event in the guard array.
       if tonumber(time[1]) == 23 then
@@ -270,7 +274,16 @@ function PartOne (inputFile)
 
       --print(tonumber(time[1]) .. guards[tonumber(uniqueID)]);
 
-      lineString = lineString .. date[2] .. "-" .. date[3] .. "  #" .. guardNumber .. "  ";
+      -- Should multiply by 10 and add an extra space here..
+      local lastSpace = "  ";
+      if tonumber(guardNumber) < 1000 then
+        if tonumber(guardNumber) < 100 then
+          lastSpace = lastSpace .. " ";
+        else
+          lastSpace = lastSpace .. "  ";
+        end
+      end
+      lineString = lineString .. date[2] .. "-" .. date[3] .. "  #" .. guardNumber .. lastSpace;
       --[[
       print(date[1])
       print(date[2])
@@ -282,6 +295,7 @@ function PartOne (inputFile)
         table.insert(headersDay, lineString);
       end
   end
+  print("END !")
 
   print(stringHeader);
 
