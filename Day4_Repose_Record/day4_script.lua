@@ -1,5 +1,5 @@
 -- Variables
-local filename = "inputFake.txt";
+local filename = "inputFakeShuffle.txt";
 local mode = "r";
 
 --#################################################################
@@ -46,16 +46,61 @@ end
 --------------------------------------
 -- Helpers function to execute a bubble sort
 ---------------------------------------
-function bubbleSort (string)
-  local resStr = string
-  for i=#resStr,1,-1 do
-    for j=1,#resStr-1 do
-      if string.byte(retrieveCharacter(resStr, j+1)) < string.byte(retrieveCharacter(resStr, j)) then
-        resStr = string.sub(resStr, 1, j-1) .. retrieveCharacter(resStr, j+1) .. retrieveCharacter(resStr, j) .. string.sub(resStr, j+2, #resStr)
+function bubbleSortRecord (lines)
+  local resStruct = lines;
+  print(resStruct[1])
+  for i=#resStruct,1,-1 do
+    for j=1,#resStruct-1 do
+      print(resStruct[j]);
+      print(resStruct[j+1]);
+      datej = SplitString(resStruct[j], {"%]", "%-", "%s", "%:"});
+      datejplus = SplitString(resStruct[j+1], {"%]", "%-", "%s", "%:"});
+
+      print(datej[1]);
+      print(datejplus[1]);
+      print(datej[2]);
+      print(datejplus[2]);
+      print(datej[3]);
+      print(datejplus[3]);
+      print(datej[4]);
+      print(datejplus[4]);
+      print(datej[5]);
+      print(datejplus[5]);
+
+      -- Start with the month
+      if tonumber(datejplus[2]) < tonumber(datej[2]) then
+        local temp = resStruct[j];
+        resStruct[j] = resStruct[j+1];
+        resStruct[j+1] = temp;
+      -- Continue with the days
+      elseif tonumber(datejplus[2]) == tonumber(datej[2]) and tonumber(datejplus[3]) < tonumber(datej[3]) then
+        local temp = resStruct[j];
+        resStruct[j] = resStruct[j+1];
+        resStruct[j+1] = temp;
+      else
+        -- Hours and minutes
+        if tonumber(datej[4]) == 23 then
+          if tonumber(datejplus[4]) == 0 then
+            local temp = resStruct[j];
+            resStruct[j] = resStruct[j+1];
+            resStruct[j+1] = temp;
+          elseif tonumber(datejplus[5]) < tonumber(datej[5]) then
+            local temp = resStruct[j];
+            resStruct[j] = resStruct[j+1];
+            resStruct[j+1] = temp;
+          end
+        elseif tonumber(datej[4]) ~= 23 then
+          if tonumber(datejplus[2]) == tonumber(datej[2]) and tonumber(datejplus[3]) == tonumber(datej[3]) and
+            tonumber(datejplus[5]) < tonumber(datej[5]) then
+            local temp = resStruct[j];
+            resStruct[j] = resStruct[j+1];
+            resStruct[j+1] = temp;
+          end
+        end
       end
     end
   end
-  return resStr;
+  return resStruct;
 end
 
 --------------------------------------
@@ -148,88 +193,95 @@ function PartOne (inputFile)
   local indice = 1;
   local guardIndex = "0";
 
-  local days = {};
-  local daysIndex = 1;
+  local days = {}
 
   stringHeader = BuildStringHeader();
 
   -- Post processing : parse the string and save them in a Set.
-  local lines = string.gsub(lines, ".-[\n]", function (val)
+  local lines = string.gsub(lines, ".-[\n]", function(val)
+    table.insert(days, val);
+  end);
 
-          -- Should apply a bubble sort here to tidy up date.
+  local daysss = bubbleSortRecord(days);
 
-          lineString = "";
+  for i=1,#daysss do
+    print(daysss[i]);
+  end
 
-          a = SplitString(val, separators);
 
-          --[[
-          print(a[1]);
-          print(a[2]);
-          --]]
 
-          t = SplitString(a[1], separators2);
+  --
+  -- start the algorithm here
+  --
+  for i=1,#daysss do
+      val = daysss[i];
 
-          --[[
-          print(t[1])
-          print(t[2])
-          print(t[3])
-          --]]
+      lineString = "";
 
-          date = SplitString(t[1], {"%-"});
+      a = SplitString(val, separators);
+      --[[
+      print(a[1]);
+      print(a[2]);
+      --]]
 
-          found, newGuardNumber = RetrieveGuardNumber(a[2]);
+      t = SplitString(a[1], separators2);
+      --[[
+      print(t[1])
+      print(t[2])
+      print(t[3])
+      --]]
+
+      date = SplitString(t[1], {"%-"});
+
+      found, newGuardNumber = RetrieveGuardNumber(a[2]);
+      if found then
+        --print("NEW GUARD :" .. newGuardNumber);
+
+        -- Change the guard number
+        guardNumber = newGuardNumber
+
+        -- Insert the index to retrieve it easily later on.
+        table.insert(guardsIndex, guardNumber .. date[3]);
+      end
+
+      time = SplitString(t[2], {"%:"});
+
+      -- Compute a unique ID which is the guardnumber + the date on which is operating;
+      print(guardNumber);
+      uniqueID = guardNumber .. date[3];
+
+      -- Store the time of the current event in the guard array.
+      if tonumber(time[1]) == 23 then
+        -- The time before midnight is not revelent. We force it to start at midnight.
+        guards[tonumber(uniqueID)] = 0;
+      else
+        if guards[tonumber(uniqueID)] == nil then
+          guards[tonumber(uniqueID)] = time[2];
+        else
           if found then
-            --print("NEW GUARD :" .. newGuardNumber);
-
-            -- Change the guard number
-            guardNumber = newGuardNumber
-
-            -- Insert the index to retrieve it easily later on.
-            table.insert(guardsIndex, guardNumber .. date[3]);
-          end
-
-          time = SplitString(t[2], {"%:"});
-
-          -- Compute a unique ID which is the guardnumber + the date on which is operating;
-          print(guardNumber);
-          uniqueID = guardNumber .. date[3];
-
-          -- Store the time of the current event in the guard array.
-          if tonumber(time[1]) == 23 then
-            -- The time before midnight is not revelent. We force it to start at midnight.
-            guards[tonumber(uniqueID)] = 0;
+            -- Mark the changements in the activities string
+            guards[tonumber(uniqueID)] = guards[tonumber(uniqueID)] .. "||" .. time[2] ;
           else
-            if guards[tonumber(uniqueID)] == nil then
-              guards[tonumber(uniqueID)] = time[2];
-            else
-              if found then
-                -- Mark the changements in the activities string
-                guards[tonumber(uniqueID)] = guards[tonumber(uniqueID)] .. "||" .. time[2] ;
-              else
-                guards[tonumber(uniqueID)] = guards[tonumber(uniqueID)] .. "," .. time[2];
-              end
-            end
+            guards[tonumber(uniqueID)] = guards[tonumber(uniqueID)] .. "," .. time[2];
           end
+        end
+      end
 
 
-          --print(tonumber(time[1]) .. guards[tonumber(uniqueID)]);
+      --print(tonumber(time[1]) .. guards[tonumber(uniqueID)]);
 
-          lineString = lineString .. date[2] .. "-" .. date[3] .. "  #" .. guardNumber .. "  ";
-          --[[
-          print(date[1])
-          print(date[2])
-          print(date[3])
-          --]]
+      lineString = lineString .. date[2] .. "-" .. date[3] .. "  #" .. guardNumber .. "  ";
+      --[[
+      print(date[1])
+      print(date[2])
+      print(date[3])
+      --]]
 
-          if found then
-            -- Insert what need to be print at the beginning of the day
-            table.insert(headersDay, lineString);
-          end
-
-
-        end);
-
-  print(lines);
+      if found then
+        -- Insert what need to be print at the beginning of the day
+        table.insert(headersDay, lineString);
+      end
+  end
 
   print(stringHeader);
 
