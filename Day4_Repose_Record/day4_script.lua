@@ -1,9 +1,9 @@
 -- Variables
-local filename = "input.txt";
+local filename = "inputFake.txt";
 local mode = "r";
 
 --#################################################################
--- function used for the part one
+-- PRINTING function used for the part one
 -- startIndex: Indice d'ou les informations vont etre prelevées. Commence a 1.
 -- endIndex: Indice inclusive ou les informations vont s'arreter d'etre analysées
 --#################################################################
@@ -40,7 +40,6 @@ function StudyGuardActivities(activities)
   end
   return finalString;
 end
-
 
 --------------------------------------
 -- Helpers function to execute a bubble sort
@@ -82,9 +81,7 @@ function bubbleSortRecord (lines)
         -- Hours and minutes
         if tonumber(datejplus[4]) == 23 then
           if tonumber(datej[4]) == 0 then
-            local temp = resStruct[j];
-            resStruct[j] = resStruct[j+1];
-            resStruct[j+1] = temp;
+            -- NOTHING
           elseif tonumber(datejplus[5]) < tonumber(datej[5]) then
             local temp = resStruct[j];
             resStruct[j] = resStruct[j+1];
@@ -138,6 +135,9 @@ function CreatePattern(separators)
   return pattern .. "]+)";
 end
 
+--#################################################################
+-- TODO
+--#################################################################
 function SplitString(string, separators)
   local result = {};
   local pattern = "";
@@ -158,6 +158,90 @@ function SplitString(string, separators)
 
   return result;
 end
+
+
+
+--#################################################################
+-- FINAL function used for the part one
+-- startIndex: Indice d'ou les informations vont etre prelevées. Commence a 1.
+-- endIndex: Indice inclusive ou les informations vont s'arreter d'etre analysées
+--#################################################################
+function StudyGuardActivities2(activities)
+  --print(activities);
+
+  finalInteger = 0;
+  local isSleeping = false;
+
+  currentIndex = 1;   -- Time index
+
+  currentNumberIndex = 1; -- The current value index used in the loop.
+
+  for currentNumber in string.gmatch(activities, "([^%,]+)") do
+    --print("NUMBER" .. currentNumber);
+    --print(finalInteger);
+    -- Ignore the first value of the array
+    --if currentNumberIndex > 1 then
+
+      -- little parse before treatment
+      time = SplitString(currentNumber, {"%:"});
+
+      -- if start by 23 => no need to process.
+      if tonumber(time[1]) ~= 23 then
+        currentNumber = time[2]
+
+        -- Reset the currentIndex if the day change
+        if tonumber(currentNumber) < currentIndex and currentNumberIndex > 2 then
+          print("RESET !")
+          isSleeping = false;
+          currentIndex = 1;
+          currentNumberIndex = 0;
+
+        else
+
+          -- If the value in the array is above 0.0
+          if(tonumber(currentNumber) > 0) then
+            if isSleeping then
+              print(currentIndex);
+              for i=currentIndex,tonumber(currentNumber)-1 do
+                --print(finalInteger);
+                finalInteger = finalInteger + 1;
+                currentIndex = currentIndex + 1;
+              end
+              print(currentIndex);
+            else
+              print(currentIndex);
+              print(tonumber(currentNumber));
+              -- Forward "the time"
+              for i=currentIndex,tonumber(currentNumber)-1 do
+                currentIndex = currentIndex + 1;
+              end
+              print(currentIndex);
+            end
+            if currentNumberIndex > 0 then
+              print(isSleeping);
+              isSleeping = not isSleeping;
+            end
+          end
+        end
+      end
+
+    --end
+    currentNumberIndex = currentNumberIndex + 1;
+  end
+
+  print("FINAL INT = " .. finalInteger);
+  return finalInteger;
+end
+-----------------------------------------
+-- Tests
+-----------------------------------------
+---[[
+print("TEST 1");
+print(tonumber(StudyGuardActivities2("00:00,00:05,00:25,00:30,00:55,00:05,00:24,00:29")) == 50);
+print("TEST 2");
+print(tonumber(StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 30);
+---]]
+
 
 
 function BuildStringHeader()
@@ -194,6 +278,10 @@ function PartOne (inputFile)
   local indice = 1;
   local guardIndex = "0";
 
+  -- FINAL STRUCT
+  local resultIndex = {};
+  local resultPart1 = {};
+
   local days = {}
 
   stringHeader = BuildStringHeader();
@@ -210,6 +298,8 @@ function PartOne (inputFile)
   end
 
   local uniqueID;
+
+  local guardID;
 
   --
   -- start the algorithm here
@@ -238,17 +328,30 @@ function PartOne (inputFile)
 
       found, newGuardNumber = RetrieveGuardNumber(a[2]);
       if found then
-        print("NEW GUARD :" .. newGuardNumber);
+        --print("NEW GUARD :" .. newGuardNumber);
 
         -- Change the guard number
         guardNumber = newGuardNumber
 
         -- Compute a unique ID which is the guardnumber + the date on which is operating;
-        print(guardNumber);
-        uniqueID = guardNumber .. date[2] .. date[3] .. time[1] .. time[2];
+
+        guardID = guardNumber;
+        uniqueID = guardID .. date[2] .. date[3] .. time[1] .. time[2];
 
         -- Insert the index to retrieve it easily later on.
         table.insert(guardsIndex, uniqueID);
+        print(guardID);
+        table.insert(resultIndex, guardID);
+
+        -- Results
+        table.insert(resultPart1, guardNumber);
+      end
+
+      print("GUARD ID " .. guardID);
+      if resultPart1[tonumber(guardID)] == nil then
+        resultPart1[tonumber(guardID)] = time[2];
+      else
+        resultPart1[tonumber(guardID)] = resultPart1[tonumber(guardID)] .. "," .. time[2];
       end
 
 
@@ -297,8 +400,14 @@ function PartOne (inputFile)
   end
   print("END !")
 
-  print(stringHeader);
+  for i = 1,#resultIndex do
+    print(tonumber(resultIndex[i]));
+    print(resultPart1[tonumber(resultIndex[i])]);
+    StudyGuardActivities2(resultPart1[tonumber(resultIndex[i])]);
+  end
 
+
+  print(stringHeader);
   index = 1;
   for i = 1,#guardsIndex do
     print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])], index, (index+2)));
@@ -337,4 +446,4 @@ function main ()
   inputFile:close();
 end
 
-main();
+--main();
