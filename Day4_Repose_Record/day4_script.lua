@@ -55,18 +55,13 @@ function bubbleSortRecord (lines)
       datejplus = SplitString(resStruct[j+1], {"%]", "%-", "%s", "%:"});
 
       --[[
-      print(datej[1]);
-      print(datejplus[1]);
-      print(datej[2]);
-      print(datejplus[2]);
-      print(datej[3]);
-      print(datejplus[3]);
-      print(datej[4]);
-      print(datejplus[4]);
-      print(datej[5]);
-      print(datejplus[5]);
+      print("J :" .. datej[1] .. " ".. datej[2] .. " ".. datej[3] .. " " .. datej[4] .. " " .. datej[5]);
+      print("J+1 :" .. datejplus[1] .. " ".. datejplus[2] .. " ".. datejplus[3] .. " " .. datejplus[4] .. " " .. datejplus[5]);
       --]]
 
+
+      --print(tonumber(datejplus[3]));
+      --print(tonumber(datej[3]));
       -- Start with the month
       if tonumber(datejplus[2]) < tonumber(datej[2]) then
         local temp = resStruct[j];
@@ -77,19 +72,17 @@ function bubbleSortRecord (lines)
         local temp = resStruct[j];
         resStruct[j] = resStruct[j+1];
         resStruct[j+1] = temp;
-      else
+      elseif tonumber(datejplus[2]) == tonumber(datej[2]) and tonumber(datejplus[3]) == tonumber(datej[3]) then
+        --print("HOURS")
         -- Hours and minutes
-        if tonumber(datejplus[4]) == 23 then
-          if tonumber(datej[4]) == 0 then
-            -- NOTHING
-          elseif tonumber(datejplus[5]) < tonumber(datej[5]) then
+        if tonumber(datej[4]) == tonumber(datejplus[4]) then
+          if tonumber(datejplus[5]) < tonumber(datej[5]) then
             local temp = resStruct[j];
             resStruct[j] = resStruct[j+1];
             resStruct[j+1] = temp;
           end
-        elseif tonumber(datej[4]) ~= 23 then
-          if tonumber(datejplus[2]) == tonumber(datej[2]) and tonumber(datejplus[3]) == tonumber(datej[3]) and
-            tonumber(datejplus[5]) < tonumber(datej[5]) then
+        else
+          if tonumber(datej[4]) == 23 then
             local temp = resStruct[j];
             resStruct[j] = resStruct[j+1];
             resStruct[j+1] = temp;
@@ -169,7 +162,14 @@ end
 function StudyGuardActivities2(activities)
   --print(activities);
 
+  -- Init array of minutes
+  minutes = {};
+  for i=1,60 do
+    minutes[i] = 0;
+  end
+
   finalInteger = 0;
+  finalMinutesIndex = 0;
   local isSleeping = false;
 
   currentIndex = 1;   -- Time index
@@ -191,7 +191,7 @@ function StudyGuardActivities2(activities)
 
         -- Reset the currentIndex if the day change
         if tonumber(currentNumber) < currentIndex and currentNumberIndex > 2 then
-          print("RESET !")
+          --print("RESET !")
           isSleeping = false;
           currentIndex = 1;
           currentNumberIndex = 0;
@@ -201,24 +201,24 @@ function StudyGuardActivities2(activities)
           -- If the value in the array is above 0.0
           if(tonumber(currentNumber) > 0) then
             if isSleeping then
-              print(currentIndex);
+              --print(currentIndex);
               for i=currentIndex,tonumber(currentNumber)-1 do
-                --print(finalInteger);
+                minutes[currentIndex] = minutes[currentIndex] + 1;
                 finalInteger = finalInteger + 1;
                 currentIndex = currentIndex + 1;
               end
-              print(currentIndex);
+              --print(currentIndex);
             else
-              print(currentIndex);
-              print(tonumber(currentNumber));
+              --print(currentIndex);
+              --print(tonumber(currentNumber));
               -- Forward "the time"
               for i=currentIndex,tonumber(currentNumber)-1 do
                 currentIndex = currentIndex + 1;
               end
-              print(currentIndex);
+              --print(currentIndex);
             end
             if currentNumberIndex > 0 then
-              print(isSleeping);
+              --print(isSleeping);
               isSleeping = not isSleeping;
             end
           end
@@ -230,16 +230,28 @@ function StudyGuardActivities2(activities)
   end
 
   print("FINAL INT = " .. finalInteger);
-  return finalInteger;
+
+  local maxValueSoFar = 0
+  for i=1,#minutes do
+    if minutes[i] > maxValueSoFar then
+      maxValueSoFar = minutes[i];
+      finalMinutesIndex = i;
+    end
+  end
+
+  --print("FINAL MINUTES = " .. finalMinutesIndex);
+  return tonumber(finalInteger), finalMinutesIndex;
 end
 -----------------------------------------
 -- Tests
 -----------------------------------------
 ---[[
 print("TEST 1");
-print(tonumber(StudyGuardActivities2("00:00,00:05,00:25,00:30,00:55,00:05,00:24,00:29")) == 50);
+print(select(1, StudyGuardActivities2("00:00,00:05,00:25,00:30,00:55,00:05,00:24,00:29")) == 50);
+print(select(2, StudyGuardActivities2("00:00,00:05,00:25,00:30,00:55,00:05,00:24,00:29")) == 24);
 print("TEST 2");
-print(tonumber(StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 30);
+print(select(1, StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 30);
+print(select(2, StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 45);
 ---]]
 
 
@@ -299,7 +311,7 @@ function PartOne (inputFile)
 
   local uniqueID;
 
-  local guardID;
+  local guardID = "";
 
   --
   -- start the algorithm here
@@ -349,9 +361,9 @@ function PartOne (inputFile)
 
       print("GUARD ID " .. guardID);
       if resultPart1[tonumber(guardID)] == nil then
-        resultPart1[tonumber(guardID)] = time[2];
+        resultPart1[tonumber(guardID)] = time[1] .. ":" .. time[2];
       else
-        resultPart1[tonumber(guardID)] = resultPart1[tonumber(guardID)] .. "," .. time[2];
+        resultPart1[tonumber(guardID)] = resultPart1[tonumber(guardID)] .. "," .. time[1] .. ":" .. time[2];
       end
 
 
@@ -381,9 +393,9 @@ function PartOne (inputFile)
       local lastSpace = "  ";
       if tonumber(guardNumber) < 1000 then
         if tonumber(guardNumber) < 100 then
-          lastSpace = lastSpace .. " ";
-        else
           lastSpace = lastSpace .. "  ";
+        else
+          lastSpace = lastSpace .. " ";
         end
       end
       lineString = lineString .. date[2] .. "-" .. date[3] .. "  #" .. guardNumber .. lastSpace;
@@ -400,17 +412,32 @@ function PartOne (inputFile)
   end
   print("END !")
 
+  finalGuardID = "";
+  finalGuardTime = 0;
+  finalMinute = 0;
+
   for i = 1,#resultIndex do
-    print(tonumber(resultIndex[i]));
-    print(resultPart1[tonumber(resultIndex[i])]);
-    StudyGuardActivities2(resultPart1[tonumber(resultIndex[i])]);
+    local currentRes, currentMinute = StudyGuardActivities2(resultPart1[tonumber(resultIndex[i])]);
+    print("GUARD #" .. tonumber(resultIndex[i]) .. " : " .. currentRes .. " minutes. With the minutes :" .. currentMinute);
+    if currentRes > finalGuardTime then
+      finalGuardID = tonumber(resultIndex[i]);
+      finalGuardTime = currentRes;
+      finalMinute = currentMinute;
+    end
   end
+
+  print("=========================================================================");
+  print("Choosen GUARD #" .. finalGuardID .. " : " .. finalGuardTime .. " minutes.");
+  print("At the minute : " .. finalMinute);
+  print("=========================================================================");
+  print("FINAL RESULT PART 1 : " .. tonumber(tonumber(finalGuardID) * tonumber(finalMinute)));
+  print("=========================================================================");
 
 
   print(stringHeader);
   index = 1;
   for i = 1,#guardsIndex do
-    print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])], index, (index+2)));
+    print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])]));
     index = index + 3;
   end
 
@@ -446,4 +473,4 @@ function main ()
   inputFile:close();
 end
 
---main();
+main();

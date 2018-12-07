@@ -1,2 +1,31 @@
-[1518-11-03 00:05] Guard #10 begins shift
-[1518-11-01 00:05] falls asleep
+[1518-05-12 00:39] wakes up
+[1518-05-09 00:21] falls asleep
+[1518-11-16 00:07] falls asleep
+[1518-02-06 23:51] Guard #2081 begins shift
+[1518-03-22 00:53] falls asleep
+[1518-09-11 23:58] Guard #1699 begins shift
+[1518-02-23 00:02] Guard #1913 begins shift
+[1518-05-07 00:22] wakes up
+[1518-07-23 00:26] wakes up
+[1518-10-07 00:40] wakes up
+[1518-02-18 00:02] Guard #263 begins shift
+[1518-06-08 00:18] falls asleep
+[1518-04-28 00:00] Guard #3301 begins shift
+[1518-02-04 00:49] wakes up
+[1518-09-08 00:13] falls asleep
+[1518-05-27 23:56] Guard #2689 begins shift
+[1518-06-17 00:53] wakes up
+[1518-03-27 00:00] Guard #1913 begins shift
+[1518-04-27 00:00] Guard #2017 begins shift
+[1518-11-14 00:05] falls asleep
+[1518-03-30 00:37] wakes up
+[1518-11-04 00:01] Guard #2521 begins shift
+[1518-11-06 00:00] Guard #3137 begins shift
+[1518-07-14 00:46] falls asleep
+[1518-06-08 23:52] Guard #2689 begins shift
+[1518-01-29 23:58] Guard #617 begins shift
+[1518-09-14 00:08] falls asleep
+[1518-04-19 23:59] Guard #1699 begins shift
+[1518-10-17 00:15] falls asleep
+[1518-10-17 00:41] falls asleep
+[1518-09-01 00:41] falls asleep
