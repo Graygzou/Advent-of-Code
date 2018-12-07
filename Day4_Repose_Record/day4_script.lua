@@ -1,5 +1,5 @@
 -- Variables
-local filename = "inputFake.txt";
+local filename = "input.txt";
 local mode = "r";
 
 --#################################################################
@@ -434,12 +434,20 @@ function PartOne (inputFile)
   print("=========================================================================");
 
 
+  --[[
   print(stringHeader);
   index = 1;
-  for i = 1,#guardsIndex do
-    print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])]));
-    index = index + 3;
+  for j = 1,#resultIndex do
+    for i = 1,#guardsIndex do
+      if tonumber(string.sub(guardsIndex[i], 1, 4)) == tonumber(resultIndex[j]) then
+        print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])]));
+      end
+      index = index + 3;
+    end
+    print("_____________________________________________________________________________")
+    print("_____________________________________________________________________________")
   end
+  --]]
 
   return 0;
 end
