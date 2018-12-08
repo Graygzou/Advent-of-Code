@@ -1,6 +1,19 @@
--- Variables
-local filename = "input.txt";
-local mode = "r";
+--################################
+--# @author: Grégoire Boiron     #
+--# @date: 12/08/2018            #
+--################################
+
+local P = {} -- packages
+
+--#################################################################
+-- Package settings
+--#################################################################
+
+if _REQUIREDNAME == nil then
+  day4 = P
+else
+  _G[_REQUIREDNAME] = P
+end
 
 --#################################################################
 -- PRINTING function used for the part one
@@ -51,8 +64,8 @@ function bubbleSortRecord (lines)
     for j=1,#resStruct-1 do
       --print(resStruct[j]);
       --print(resStruct[j+1]);
-      datej = SplitString(resStruct[j], {"%]", "%-", "%s", "%:"});
-      datejplus = SplitString(resStruct[j+1], {"%]", "%-", "%s", "%:"});
+      datej = helper.splitString(resStruct[j], {"%]", "%-", "%s", "%:"});
+      datejplus = helper.splitString(resStruct[j+1], {"%]", "%-", "%s", "%:"});
 
       --[[
       print("J :" .. datej[1] .. " ".. datej[2] .. " ".. datej[3] .. " " .. datej[4] .. " " .. datej[5]);
@@ -114,46 +127,6 @@ RetrieveGuardNumber("wakes up");
 RetrieveGuardNumber("This is a test.");
 --]]
 
----------------------------------------
--- Helpers function to construct the maching pattern in lua
----------------------------------------
-function CreatePattern(separators)
-  local i = 1;
-  local pattern = "([";
-
-  for i=1,#separators do
-    pattern = pattern .. "^" .. separators[i];
-  end
-
-  return pattern .. "]+)";
-end
-
---#################################################################
--- TODO
---#################################################################
-function SplitString(string, separators)
-  local result = {};
-  local pattern = "";
-  local i = 1;
-
-  -- If no separators provided, add a default one : any whitespace.
-  if separators == nil then
-    pattern = "%s";
-  else
-    pattern = CreatePattern(separators);
-  end
-
-  -- Parse the string
-  for str in string.gmatch(string, pattern) do
-    result[i] = str
-    i = i + 1;
-  end
-
-  return result;
-end
-
-
-
 --#################################################################
 -- FINAL function used for the part one
 -- startIndex: Indice d'ou les informations vont etre prelevées. Commence a 1.
@@ -183,7 +156,7 @@ function StudyGuardActivities2(activities)
     --if currentNumberIndex > 1 then
 
       -- little parse before treatment
-      time = SplitString(currentNumber, {"%:"});
+      time = helper.splitString(currentNumber, {"%:"});
 
       -- if start by 23 => no need to process.
       if tonumber(time[1]) ~= 23 then
@@ -254,8 +227,9 @@ print(select(1, StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03
 print(select(2, StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 45);
 ---]]
 
-
-
+--####################################################################
+-- BuildStringHeader - Build the header string to be print at the end
+--####################################################################
 function BuildStringHeader()
   stringHeader = "Date   ID   Minute\n";
 
@@ -265,24 +239,31 @@ function BuildStringHeader()
   return stringHeader;
 end
 
---#################################################################
--- function used for the part one
---#################################################################
-function PartOne (inputFile)
+--#######################################################################
+-- PrintFinalBoard - Used to go throught all the lines and retrieve useful data
+--#######################################################################
+function PrintFinalBoard(resultIndex, guardsIndex, headersDay, guards);
+  -- print the header
+  print(BuildStringHeader());
 
-  -- Read the entire file at once.
-  lines = inputFile:read("*all");
+  -- print the rest
+  index = 1;
+  for j = 1,#resultIndex do
+    for i = 1,#guardsIndex do
+      if tonumber(string.sub(guardsIndex[i], 1, 4)) == tonumber(resultIndex[j]) then
+        print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])]));
+      end
+      index = index + 3;
+    end
+    print("_____________________________________________________________________________")
+    print("_____________________________________________________________________________")
+  end
+end
 
-  local separators = {
-    "%]",
-  };
-
-  local separators2 = {
-    "%[ ",
-    " %]",
-    "\n",
-  };
-
+--#######################################################################
+-- MainLoop - Used to go throught all the lines and retrieve useful data
+--#######################################################################
+function MainLoop(daysStruct)
   local guards = {};
   local guardsIndex = {};
   local headersDay = {};
@@ -294,51 +275,26 @@ function PartOne (inputFile)
   local resultIndex = {};
   local resultPart1 = {};
 
-  local days = {}
-
-  stringHeader = BuildStringHeader();
-
-  -- Post processing : parse the string and save them in a Set.
-  local lines = string.gsub(lines, ".-[\n]", function(val)
-    table.insert(days, val);
-  end);
-
-  local daysss = bubbleSortRecord(days);
-
-  for i=1,#daysss do
-    print(daysss[i]);
-  end
-
   local uniqueID;
-
   local guardID = "";
 
-  --
-  -- start the algorithm here
-  --
-  print("START !")
-  for i=1,#daysss do
-      val = daysss[i];
+  for i=1,#daysStruct do
+      val = daysStruct[i];
 
       lineString = "";
 
-      a = SplitString(val, separators);
+      sentence = helper.splitString(val, {"%]"});   -- Parse the string with given separators
+      dateTimeStr = helper.splitString(sentence[1], {"%[ ", " %]", "\n",});   -- Parse the string with given separators
+
       --[[
-      print(a[1]);
-      print(a[2]);
+      print(sentence[1] .. "/" .. sentence[2]);
+      print(dateTimeStr[1] .. ":" .. dateTimeStr[2] .. ":" .. dateTimeStr[3]);
       --]]
 
-      t = SplitString(a[1], separators2);
-      --[[
-      print(t[1])
-      print(t[2])
-      print(t[3])
-      --]]
+      date = helper.splitString(dateTimeStr[1], {"%-"});
+      time = helper.splitString(dateTimeStr[2], {"%:"});
 
-      date = SplitString(t[1], {"%-"});
-      time = SplitString(t[2], {"%:"});
-
-      found, newGuardNumber = RetrieveGuardNumber(a[2]);
+      found, newGuardNumber = RetrieveGuardNumber(sentence[2]);
       if found then
         --print("NEW GUARD :" .. newGuardNumber);
 
@@ -410,7 +366,6 @@ function PartOne (inputFile)
         table.insert(headersDay, lineString);
       end
   end
-  print("END !")
 
   finalGuardID = "";
   finalGuardTime = 0;
@@ -433,40 +388,52 @@ function PartOne (inputFile)
   print("FINAL RESULT PART 1 : " .. tonumber(tonumber(finalGuardID) * tonumber(finalMinute)));
   print("=========================================================================");
 
+  -- Beautiful print
+  PrintFinalBoard(resultIndex, guardsIndex, headersDay, guards);
+end
 
-  --[[
-  print(stringHeader);
-  index = 1;
-  for j = 1,#resultIndex do
-    for i = 1,#guardsIndex do
-      if tonumber(string.sub(guardsIndex[i], 1, 4)) == tonumber(resultIndex[j]) then
-        print(headersDay[i] .. StudyGuardActivities(guards[tonumber(guardsIndex[i])]));
-      end
-      index = index + 3;
-    end
-    print("_____________________________________________________________________________")
-    print("_____________________________________________________________________________")
+--#################################################################
+-- PartOne - function used for the part one
+--#################################################################
+function PartOne (inputFile)
+  local daysStruct = helper.saveLinesToArray(inputFile);
+
+  -- Sort the array of value
+  local daysStruct = bubbleSortRecord(days);
+
+  -- File that will contains the output file tidy-up
+  file = io.open("Day4_Repose_Record/inputTidyUp.txt", "w");
+  io.output(file);
+  -- Save the sort output in another file.
+  for i=1,#daysStruct do
+    io.write(daysStruct[i]);
+    print(daysStruct[i]);
   end
-  --]]
+  io.close(file);
+
+  -- Start the algorithm here
+  MainLoop(daysStruct);
 
   return 0;
 end
 
 --#################################################################
--- function used for the part one
+-- PartTwo - function used for the part one
 --#################################################################
 function PartTwo (inputFile)
 
+  -- TODO
+
   return 0;
 end
 
 
----------------------------------------
--- function main
----------------------------------------
-function main ()
+--#################################################################
+-- Main - Main function
+--#################################################################
+function day4Main (filename)
   -- Read the input file and put it in a file handle
-  local inputFile = assert(io.open(filename, mode));
+  local inputFile = assert(io.open(filename, "r"));
 
   -- Launch and print the final result
   print("Result part one :", PartOne(inputFile));
@@ -481,4 +448,12 @@ function main ()
   inputFile:close();
 end
 
-main();
+--#################################################################
+-- Package end
+--#################################################################
+
+day4 = {
+  day4Main = day4Main,
+}
+
+return day4
