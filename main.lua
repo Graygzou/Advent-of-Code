@@ -10,6 +10,7 @@ package.path = package.path .. ';Helpers/?.lua;'
 require "helper"
 require "Day4_Repose_Record.day4"
 require "Day5_Alchemical_Reduction.day5"
+require "Day6_Chronal_Coordinates.day6"
 
 -- Variables
 local filename = "";
@@ -21,6 +22,7 @@ local mains = {
   [3] = {day3_main, ""},
   [4] = {day4.day4Main, "Day4_Repose_Record/input.txt"},
   [5] = {day5.day5Main, "Day5_Alchemical_Reduction/input.txt"},
+  [6] = {day6.day6Main, "Day6_Chronal_Coordinates/input.txt"},
 }
 
 -- Retrieve input from the player

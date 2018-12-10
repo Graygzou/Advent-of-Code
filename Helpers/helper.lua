@@ -90,6 +90,19 @@ function saveLinesToArray(inputFile)
   return days;
 end
 
+---------------------------------------
+-- Set - function to create set data structure
+-- Params:
+--    - list : existing (can be empty) list.
+-- Return:
+--     the set datastructure.
+---------------------------------------
+function Set (list)
+  local set = {};
+  for _, l in ipairs (list) do set[l] = true end;
+  return set;
+end
+
 
 --#################################################################
 -- Package end
@@ -100,6 +113,7 @@ end
 helper = {
   splitString = splitString,
   saveLinesToArray = saveLinesToArray,
+  Set = Set,
 }
 
 return helper

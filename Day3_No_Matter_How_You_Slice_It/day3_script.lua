@@ -18,15 +18,6 @@ function ToStringArray(array)
 end
 
 ---------------------------------------
--- Helper function for set data structure
----------------------------------------
-function Set (list)
-  local set = {};
-  for _, l in ipairs (list) do set[l] = true end;
-  return set;
-end
-
----------------------------------------
 -- Helpers function to construct the maching pattern in lua
 ---------------------------------------
 function CreatePattern(separators)
@@ -298,7 +289,7 @@ function MergeRectangles(lineStruct2)
           elseif IsContainRect(exSet[j], rect) then
 
             print("erase2");
-            
+
             newPoints, knownPoints = GetNumberOverlappingPoints(rect, exSet[j], knownPoints);
 
             table.insert(newSet, exSet[j][1]);
