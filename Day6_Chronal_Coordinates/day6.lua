@@ -170,8 +170,8 @@ function printVisualization(MaxX, MaxY, areas, removedAreas)
   file = io.open("Day6_Chronal_Coordinates/visualization.txt", "w");
   io.output(file);
 
-  for x = 1,MaxX do
-    for y = 1,MaxY do
+  for y = 1,MaxY do
+    for x = 1,MaxX do
       local found = false
       local index = nil
       for currentAreaIndex = 1,#areas do
@@ -223,6 +223,18 @@ function printVisualizationMatrix(finalPoints, i)
   io.close(file);
 end
 
+
+function removeInfiniteArea(i, j, area, currentAreaIndex, removedAreas)
+  index = computeClosestArea(i, j, areas, currentAreaIndex)
+  -- Tag the arrow that contains that point.
+  for i, v in ipairs(index) do
+    print(i, v)
+    if not removedAreas[v] then
+      removedAreas[v] = true
+    end
+  end
+end
+
 ------------------------------------------------------------------------
 -- partOne - function used for the part 1
 -- Params:
@@ -253,76 +265,37 @@ function partOne (inputFile)
     end
   end
 
-  print(MaxX)
-  print(MaxY)
-
-  print(#areas)
-
   -- Now we have a full rectangle, tag the border of it to remove infinite areas.
 
   local finalAreaIndex = 0
 
-  -- for each point in the top side.
+  -- TOP side.
   local j = 1;
   for i=1,MaxX do
-    index = computeClosestArea(i, j, areas, currentAreaIndex)
-
-    -- Tag the arrow that contains that point.
-    for i, v in ipairs(index) do
-      print(i, v)
-      if not removedAreas[v] then
-        removedAreas[v] = true
-      end
-    end
+    removeInfiniteArea(i, j, area, currentAreaIndex, removedAreas)
   end
 
+  -- BOTTOM side
   local j = MaxY;
-  -- Bottom side
   for i=1,MaxX do
-    index = computeClosestArea(i, j, areas, currentAreaIndex)
-
-    -- Tag the arrow that contains that point.
-    for i, v in ipairs(index) do
-      print(i, v)
-      if not removedAreas[v] then
-        removedAreas[v] = true
-      end
-    end
+    removeInfiniteArea(i, j, area, currentAreaIndex, removedAreas)
   end
 
-  -- Right side
+  -- RIGHT side
   local i = MaxX;
   for j=1,MaxY do
-    index = computeClosestArea(i, j, areas, currentAreaIndex)
-
-    -- Tag the arrow that contains that point.
-    for i, v in ipairs(index) do
-      print(i, v)
-      if not removedAreas[v] then
-        removedAreas[v] = true
-      end
-    end
+    removeInfiniteArea(i, j, area, currentAreaIndex, removedAreas)
   end
 
-  -- Left side
+  -- LEFT side
   local i = 1;
   for j=1,MaxY do
-    index = computeClosestArea(i, j, areas, currentAreaIndex)
-    -- Tag the arrow that contains that point.
-    for i, v in ipairs(index) do
-      print(i, v)
-      if not removedAreas[v] then
-        removedAreas[v] = true
-      end
-    end
-
+    removeInfiniteArea(i, j, area, currentAreaIndex, removedAreas)
   end
 
   -- Print in file the result
   printVisualization(MaxX, MaxY, areas, removedAreas)
 
-
-  -- Just for debug purpose
   finalPoints = {}  -- create the matrix
   for i=1,MaxX do
     finalPoints[i] = {}     -- create a new row
@@ -331,9 +304,9 @@ function partOne (inputFile)
     end
   end
 
-
   largestAreaSize = 0
   --[[
+  -- WIP
   -- For all the areas left (should be finite), we compute their area.
   for i=1,#areas do
     if removedAreas[i] then
@@ -355,6 +328,7 @@ function partOne (inputFile)
       largestAreaSize = currentAreaSize
     end
   end
+  -- end WIP
   --]]
 
   finalAreas = {}
@@ -399,6 +373,28 @@ function partOne (inputFile)
 
   return largestAreaSize;
 end
+----
+--
+--
+-------
+function computeGridPoint (refX, refY, x, y, array1, array2, areas)
+  print(tonumber(x))
+
+  finalPoints[x][y] = finalPoints[refX][refY] + tonumber(#array1) - tonumber(#array2)
+  print(array2[arrayIndex])
+  for arrayIndex = 1,#array2 do
+    if array2[arrayIndex] ~= nil then
+      if tonumber(x) <= tonumber(areas[array2[arrayIndex]][1]) then
+
+        table.remove(array2, index)
+        table.insert(array1, index)
+        finalPoints[x][y] = finalPoints[x][y] - 1
+      end
+    end
+  end
+
+  return finalPoints[x][y], array1, array2
+end
 
 ------------------------------------------------------------------------
 -- partTwo - function used for the part 2
@@ -408,10 +404,155 @@ end
 --    the final result for the part 2.
 ------------------------------------------------------------------------
 function partTwo (inputFile)
+  local areas = {}
+  local finalAreaSize = 0
+  local areasIndex = {}
 
-  -- TODO
+  local MaxX = 0;
+  local MaxY = 0;
+  local points = helper.saveLinesToArray(inputFile)
 
-  return 0;
+  for i = 1,#points do
+    areas[i] = helper.splitString(points[i], {", ", "\n"})
+
+    table.insert(areasIndex, i)
+
+    if MaxX < tonumber(areas[i][1]) then
+      MaxX = tonumber(areas[i][1])
+    end
+    if MaxY < tonumber(areas[i][2]) then
+      MaxY = tonumber(areas[i][2])
+    end
+  end
+
+  --print(MaxX)
+  --print(MaxY)
+
+  -- Init the matrix
+  finalPoints = {}  -- create the matrix
+  for i=1,MaxX do
+    finalPoints[i] = {}     -- create a new row
+    for j=1,MaxY do
+      finalPoints[i][j] =  0
+    end
+  end
+
+  -- Take the middle point
+  local halfMaxX= math.floor(MaxX / 2)
+  local halfMaxY = math.floor(MaxY / 2)
+
+  --print("X" .. halfMaxX)
+  --print("Y" .. halfMaxY)
+
+  -- Compute the distance from all the area center.
+  -- Register all the point in cardinals arrays
+  local left = {}
+  local right = {}
+  local bottom = {}
+  local top = {}
+
+  for index=1,#areas do
+    finalPoints[halfMaxX][halfMaxY] = finalPoints[halfMaxX][halfMaxY] + math.abs(halfMaxX - areas[index][1]) + math.abs(halfMaxY - areas[index][2]);
+    if tonumber(areas[index][1]) < halfMaxX then
+      table.insert(left, index)
+    elseif tonumber(areas[index][1]) > halfMaxX then
+      table.insert(right, index)
+    end
+    if tonumber(areas[index][2]) > halfMaxY then
+      table.insert(bottom, index)
+    elseif tonumber(areas[index][2]) < halfMaxY then
+      table.insert(top, index)
+    end
+  end
+
+  --print("DEBUG :" ..  areas[35][1] .. "," .. areas[35][2])
+
+  print(finalPoints[halfMaxX][halfMaxY])
+
+  if finalPoints[halfMaxX][halfMaxY] < 10000 then
+    finalAreaSize = finalAreaSize + 1
+  end
+
+  print(finalPoints[halfMaxX][halfMaxY])
+
+  print("LEFT")
+  print(#left)
+
+  print("RIGHT")
+  print(#right)
+
+  print("TOP")
+  print(#top)
+
+  print("BOTTOM")
+  print(#bottom)
+
+  -- Compute his 4 neighbors.
+  -- Left
+  --finalPoints[halfMaxX-1][halfMaxY] = computeGridPoint(halfMaxX, halfMaxY, halfMaxX-1, halfMaxY, right, left, areas)
+
+  --print(tonumber(halfMaxX-1))
+  --finalPoints[halfMaxX-1][halfMaxY] = finalPoints[halfMaxX][halfMaxY] + tonumber(#right) - tonumber(#left)
+  --for leftIndex = 1,#left do
+  --  if tonumber(halfMaxX-1) <= tonumber(areas[left[leftIndex]][1]) then
+  --    print("REMOVE" .. tonumber(areas[left[leftIndex]][1]))
+  --    table.remove(left, index)
+  --    finalPoints[halfMaxX-1][halfMaxY] = finalPoints[halfMaxX-1][halfMaxY] - 1
+  --  end
+  --end
+
+  print("Left Point" .. finalPoints[halfMaxX-1][halfMaxY])
+
+  print(#left)
+  print(#right)
+
+  -- Left
+  --finalPoints[halfMaxX+1][halfMaxY], left, right = computeGridPoint(halfMaxX, halfMaxY, halfMaxX+1, halfMaxY, left, right, areas)
+
+  --finalPoints[halfMaxX+1][halfMaxY] = finalPoints[halfMaxX][halfMaxY] - tonumber(#right) + tonumber(#left)
+  --for rightIndex = 1,#right do
+  --  if tonumber(halfMaxX+1) >= tonumber(areas[right[rightIndex]][1]) then
+  --    print("REMOVE" .. tonumber(areas[right[rightIndex]][1]))
+  --    table.remove(right, index)
+  --    finalPoints[halfMaxX+1][halfMaxY] = finalPoints[halfMaxX+1][halfMaxY] - 1
+  --  end
+  --end
+
+  print("Right Point" .. finalPoints[halfMaxX+1][halfMaxY])
+
+  for index=1,#areas do
+    --finalPoints[halfMaxX-1][halfMaxY] = finalPoints[halfMaxX-1][halfMaxY] + math.abs(halfMaxX-1 - areas[index][1]) + math.abs(halfMaxY-1 - areas[index][2]);
+    -- Update the struct
+    if left[index] ~= nil and tonumber(areas[index][1]) == halfMaxX-1 then
+      table.remove(left, index)
+    elseif right[index] ~= nil and tonumber(areas[index][1]) == halfMaxX-1 then
+      table.remove(right, index)
+    end
+  end
+
+  if finalPoints[halfMaxX-1][halfMaxY] < 10000 then
+    finalAreaSize = finalAreaSize + 1
+  end
+
+  print(finalPoints[halfMaxX-1][halfMaxY])
+
+  -- foreach point in the grid
+  -- Maybe later
+  finalAreaSize = 0
+  for i=1,MaxX do
+    for j=1,MaxY do
+      for index=1,#areas do
+        finalPoints[i][j] = finalPoints[i][j] + math.abs(i - areas[index][1]) + math.abs(j - areas[index][2]);
+      end
+      if finalPoints[i][j] < 10000 then
+        finalAreaSize = finalAreaSize + 1
+      end
+    end
+  end
+
+    -- Does this point should be included in the area
+
+  return finalAreaSize;
 end
 
 
@@ -423,7 +564,7 @@ function day6Main (filename)
   local inputFile = assert(io.open(filename, "r"));
 
   -- Launch and print the final result
-  print("Result part one :", partOne(inputFile));
+  --print("Result part one :", partOne(inputFile));
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
