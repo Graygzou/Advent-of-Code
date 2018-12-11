@@ -15,7 +15,7 @@ local P = {} -- packages
 --#################################################################
 
 if _REQUIREDNAME == nil then
-  dayX = P
+  day7 = P
 else
   _G[_REQUIREDNAME] = P
 end
@@ -33,7 +33,64 @@ end
 ------------------------------------------------------------------------
 function partOne (inputFile)
 
-  -- TODO
+  local instructions = helper.saveLinesToArray(inputFile)
+
+  tasks = {}
+  leftArray = {}
+  rightArray = {}
+
+  local startingPoint = {}
+
+
+  -- /!\ Use a Set here. /!\
+
+  for i = 1,#instructions do
+    print(instructions[i])
+    --tasks = helper.splitString(instructions[i], {"^][", "must be finished before step", "can begin.\n"})
+
+    local f = 1
+    for str in string.gmatch(instructions[i], "[%u]") do
+      if f ~= 1 then
+        tasks[f] = str;
+      end
+      f = f + 1;
+    end
+
+    print(string.byte(tasks[2]))
+    print(string.byte(tasks[3]))
+
+    print(startingPoint[string.byte(tasks[3])])
+
+    if startingPoint[string.byte(tasks[3])] then
+      print("REMOVE")
+      table.remove(startingPoint, string.byte(tasks[3]))
+    end
+
+
+    print(startingPoint[string.byte(tasks[2])])
+
+    -- If the point appear in the rightArray and already register in startingPoint
+    if startingPoint[string.byte(tasks[2])] ~= nil and rightArray[string.byte(tasks[2])] ~= nil then
+      print("REMOVE")
+      table.remove(startingPoint, string.byte(tasks[2]))
+    elseif startingPoint[string.byte(tasks[2])] == nil and rightArray[string.byte(tasks[2])] == nil then
+      print("ADD")
+        print(tasks[2])
+      table.insert(startingPoint, string.byte(tasks[2]))
+    end
+
+    print(tasks[3])
+
+    -- Save them for later computation
+    table.insert(leftArray, string.byte(tasks[2]))
+    table.insert(rightArray, string.byte(tasks[3]))
+  end
+
+  for i=1,#startingPoint do
+    if startingPoint[i] then
+      print(i)
+    end
+  end
 
   return 0;
 end
@@ -56,7 +113,7 @@ end
 --#################################################################
 -- Main - Main function
 --#################################################################
-function dayXMain (filename)
+function day7Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
@@ -77,8 +134,8 @@ end
 -- Package end
 --#################################################################
 
-dayX = {
-  dayXMain = dayXMain,
+day7 = {
+  day7Main = day7Main,
 }
 
-return dayX
+return day7
