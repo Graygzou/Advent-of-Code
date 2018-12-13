@@ -27,8 +27,6 @@ end
 function ContainsValue(array, value, rightSide)
   found = false
 
-  print(value)
-
   local i = 1
   while i <= #array and not found do
     if rightSide then
@@ -58,16 +56,8 @@ end
 function isTaskAvailable(array, value, leftValue, finalPoint)
   available = true
 
-  print("VALUE = " .. value)
-  print("LEFT = " .. leftValue)
-  for k, v in pairs(finalPoint) do
-    print(k)
-  end
-
   for i = 1,#array do
     if array[i].left ~= leftValue and array[i].right == value then
-      print("CONTAINS2 : ")
-      print(ContainsValue2(finalPoint, array[i].left))
       if not ContainsValue2(finalPoint, array[i].left) then
         available = false
       end
@@ -90,7 +80,7 @@ function postProcessing(inputFile)
   local instructions = helper.saveLinesToArray(inputFile)
 
   for i = 1,#instructions do
-    print(instructions[i])
+    --print(instructions[i])
     --tasks = helper.splitString(instructions[i], {"^][", "must be finished before step", "can begin.\n"})
 
     local f = 1
@@ -119,11 +109,6 @@ function postProcessing(inputFile)
     table.insert(array, {left=tasks[2], right=tasks[3]})
   end
 
-  print("ARRAY")
-  for i = 1,#array do
-    print(array[i].left .. " => " .. array[i].right)
-  end
-
   return array, startingPoint
 end
 
@@ -136,31 +121,27 @@ end
 ------------------------------------------------------------------------
 function partOne (inputFile)
 
-  finalString = ""
+  local finalString = ""
   local finalPoint = Set{}
-  taskList = new{}
+  local taskList = new{}
 
   -- Use set to register Starting and Ending Tasks
   local array, startingPoint = postProcessing(inputFile)
 
-  print("START")
   table.sort(startingPoint)
   for k,v in pairs(startingPoint) do
     if v == true then
-      print(k)
       List.pushleft(taskList, k)
     end
   end
 
-  List.printstack(taskList)
+  --List.printstack(taskList)
 
   local nextValue = List.popright(taskList)
   while nextValue ~= nil do
-    print("NEXT VALUE" .. nextValue)
 
     -- Update final string
     if not finalPoint[nextValue] then
-      print("ICI")
       finalString = finalString .. nextValue
       finalPoint[nextValue] = true
     end
@@ -168,7 +149,6 @@ function partOne (inputFile)
     -- Get all the value that this task "give" AND POSSIBLE TO DEAL WITH !
     for i = 1,#array do
       if array[i].left == nextValue then
-        --table.insert(tempArray, string.byte(array[i].right))
         List.pushleft(taskList, array[i].right)
       end
     end
@@ -180,38 +160,20 @@ function partOne (inputFile)
       end
     end
 
-    print(getSize(taskList))
-
-    for i = 1,#tempArray do
-      print(tempArray[i])
-    end
-
     -- Sort the array to follow the alphabetic order
     table.sort(tempArray, function(a,b) return a<b end)
 
     taskList = new{}
     for i = 1,#tempArray do
-      print(string.char(tempArray[i]))
       if isTaskAvailable(array, string.char(tempArray[i]), nextValue, finalPoint) then
         List.pushleft(taskList, string.char(tempArray[i]))
       end
     end
 
-    print("DEBUG :")
-    List.printstack(taskList)
-
-    -- Add all new points to the struct we're iterating on.
-    --for i = 1,#tempArray do
-    --  print(string.char(tempArray[i]))
-    --  List.pushleft(taskList, string.char(tempArray[i]))
-    --end
-
-    List.printstack(taskList)
+    --List.printstack(taskList)
 
     nextValue = List.popright(taskList)
   end
-
-  print("FINAL VALUE" .. finalString)
 
   return finalString;
 end
@@ -219,26 +181,74 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function assignTasks (workersNum, extraTime, workers, nextValue, taskList)
+function assignTasks (workersNum, extraTime, workers, nextValue, taskList, finalPoint)
+  --print("ASSIGN TASKS")
+
+  -- Created a list of current tasks handle by workers
+  currentTasks = Set{}
+  for i = 1,workersNum do
+    currentTasks[workers[i].task] = true
+  end
+
   assigned = false
 
   local nextValue = List.popright(taskList)
   i = 1
-  while i < workersNum and nextValue ~= nil do
-    if workers[i].time == 0 then
-      -- Assign the task to the current worker
-      workers[i].task = nextValue
-      workers[i].time = string.byte(nextValue) - 64 + extraTime
-      assigned = true
+  -- Check if the task has been already done
+  while i <= workersNum and nextValue ~= nil do
+    if not finalPoint[nextValue] and not currentTasks[nextValue] then
+      if workers[i].time == 0 then
+        -- Assign the task to the current worker
+        workers[i].task = nextValue
+        workers[i].time = string.byte(nextValue) - 64 + extraTime
+        assigned = true
+
+        -- Update the array so no worker will take this task.
+        currentTasks[nextValue] = true
+
+        -- Get a new value
+        nextValue = List.popright(taskList)
+      else
+        -- Register again the value in the List.
+        List.pushleft(taskList, nextValue)
+      end
+      i = i + 1
+    else
       -- Get a new value
       nextValue = List.popright(taskList)
     end
+  end
+
+  -- Insert the last element back into the taskList
+  if nextValue ~= nil then
+    List.pushleft(taskList, nextValue)
+  end
+
+  -- Check if at least one worker is working
+  i = 1
+  while i <= workersNum and not assigned do
+    assigned = workers[i].task ~= "" and workers[i].time > 0
     i = i + 1
   end
 
   return assigned, workers, taskList
 end
 
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function printLine(workers, workersNum, tick, finalString)
+  local printString = tick .. "            "
+  for i=1,workersNum do
+    local task = "."
+    if workers[i].task ~= "" then
+      task = workers[i].task
+    end
+    printString = printString .. task .. "       "
+  end
+  printString = printString .. "      " .. finalString
+  print(printString)
+end
 
 ------------------------------------------------------------------------
 -- partTwo - function used for the part 2
@@ -248,12 +258,15 @@ end
 --    the final result for the part 2.
 ------------------------------------------------------------------------
 function partTwo (inputFile)
-  extraTime = 0
-  workersNum = 2
+  local extraTime = 60
+  local workersNum = 5
 
   local tick = 0
 
-  workers = {}
+  local finalString = ""
+  local taskList = new{}
+
+  local workers = {}
   for i=1,workersNum do
     table.insert(workers, {task="", time=0})  -- Insert the current time the worker need to work (0 right now)
   end
@@ -262,35 +275,56 @@ function partTwo (inputFile)
   local finalPoint = Set{}
   taskList = new{}
 
-  print("START")
   table.sort(startingPoint)
   for k,v in pairs(startingPoint) do
     if v == true then
-      print(k)
+      --print(k)
       List.pushleft(taskList, k)
     end
   end
 
-  List.printstack(taskList)
+  ---------------------------
+  -- Order the taskList
+  ---------------------------
+  tempArray = {}
+  for k, v in pairs(taskList) do
+    if k ~= "first" and k ~= "last" then
+      table.insert(tempArray, string.byte(v))
+    end
+  end
+
+  -- Sort the array to follow the alphabetic order
+  table.sort(tempArray, function(a,b) return a<b end)
+
+  -- Get all the value that this task "give" AND POSSIBLE TO DEAL WITH !
+  taskList = new{}
+  for i = 1,#tempArray do
+    List.pushleft(taskList, string.char(tempArray[i]))
+  end
+
+  ---------------
+  -- End order
+  --------------
 
   -- Assign the task to all available workers
-  assigned, workers, taskList = assignTasks(workersNum, extraTime, workers, nextValue, taskList)
+  assigned, workers, taskList = assignTasks(workersNum, extraTime, workers, nextValue, taskList, finalPoint)
 
-  print(assigned)
+  List.printstack(taskList)
+
+  -- print HEADER
+  headerString = "Second   "
+  for i=1,workersNum do
+    headerString = headerString .. " Worker" .. i
+  end
+  print(headerString .. "   Done")
+
+  -----------------------------------
+  -- START THE ALGORITHM
+  -----------------------------------
   while assigned do
-
-    -- Debug
-    for i=1,workersNum do
-      print("Worker : " .. i .. ", task : " .. workers[i].task .. ", time : " .. workers[i].time)
-    end
-
-    List.printstack(taskList)
-
     -- While no workers has finished his tasks
     finished = false
     while not finished do
-      -- Update the time
-      tick = tick + 1
 
       -- Decrease by one all the current work for each worker
       for i=1,workersNum do
@@ -302,63 +336,80 @@ function partTwo (inputFile)
         end
       end
 
-      for i=1,workersNum do
-        print("Worker : " .. i .. ", task : " .. workers[i].task .. ", time : " .. workers[i].time)
-      end
+      -- Print one line for all workers
+      printLine(workers, workersNum, tick, finalString)
+
+      -- Update the time
+      tick = tick + 1
     end
 
-    print("FINISHED")
-
     -- At least one worker has finished his task
+    doneTasks = {}
 
     -- for all the task done, update the final string
     for i=1,workersNum do
       if workers[i].task ~= "" then
-        if workers[i].time == 0 and not finalPoint[nextValue] then
+        if workers[i].time == 0 and not finalPoint[workers[i].task] then
+          --print("FINAL = " .. finalString)
           finalString = finalString .. workers[i].task
           finalPoint[workers[i].task] = true
+
+          table.insert(doneTasks, workers[i].task)
+
+          -- Reset the task for that worker
+          workers[i].task = ""
         end
-
-        if workers[i].time == 0 then
-          for j = 1,#array do
-            if array[j].left == workers[i].task then
-              List.pushleft(taskList, array[j].right)
-            end
-          end
-
-          tempArray = {}
-          for k, v in pairs(taskList) do
-            if k ~= "first" and k ~= "last" then
-              table.insert(tempArray, string.byte(v))
-            end
-          end
-
-          for i = 1,#tempArray do
-            print("TEMP " .. tempArray[i])
-          end
-
-          -- Sort the array to follow the alphabetic order
-          table.sort(tempArray, function(a,b) return a<b end)
-
-          -- Get all the value that this task "give" AND POSSIBLE TO DEAL WITH !
-          taskList = new{}
-          for i = 1,#tempArray do
-            print(string.char(tempArray[i]))
-            if isTaskAvailable(array, string.char(tempArray[i]), workers[i].task, finalPoint) then
-              List.pushleft(taskList, string.char(tempArray[i]))
-            end
-          end
-        end
-
       end
     end
 
-    print("DEBUG :")
-    List.printstack(taskList)
+    --print("ADD NEW TASKS")
+
+    -- For all the done tasks retrieve the following tasks and add them to the list
+    for i=1,#doneTasks do
+      currentTask = doneTasks[i]
+
+      for j = 1,#array do
+        if array[j].left == currentTask then
+          List.pushleft(taskList, array[j].right)
+        end
+      end
+
+      --print("INTERMEDIATE")
+      --List.printstack(taskList)
+
+      tempArray = {}
+      for k, v in pairs(taskList) do
+        if k ~= "first" and k ~= "last" then
+          table.insert(tempArray, string.byte(v))
+        end
+      end
+
+      --for i = 1,#tempArray do
+      --  print("TEMP " .. tempArray[i])
+      --end
+
+      -- Sort the array to follow the alphabetic order
+      table.sort(tempArray, function(a,b) return a<b end)
+
+      -- Get all the value that this task "give" AND POSSIBLE TO DEAL WITH !
+      taskList = new{}
+      for i = 1,#tempArray do
+        --print(string.char(tempArray[i]))
+        if isTaskAvailable(array, string.char(tempArray[i]), currentTask, finalPoint) then
+          List.pushleft(taskList, string.char(tempArray[i]))
+        end
+      end
+    end
+
+    --print("DEBUG :")
+    --List.printstack(taskList)
 
     -- Assign the task to all available workers
-    assigned, workers, taskList = assignTasks(workersNum, extraTime, workers, nextValue, taskList)
+    assigned, workers, taskList = assignTasks(workersNum, extraTime, workers, nextValue, taskList, finalPoint)
   end
+
+  -- Print one line for all workers
+  printLine(workers, workersNum, tick, finalString)
 
   return tick;
 end

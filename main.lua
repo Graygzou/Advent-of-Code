@@ -25,7 +25,7 @@ local mains = {
   [4] = {day4.day4Main, "Day4_Repose_Record/input.txt"},
   [5] = {day5.day5Main, "Day5_Alchemical_Reduction/input.txt"},
   [6] = {day6.day6Main, "Day6_Chronal_Coordinates/input.txt"},
-  [7] = {day7.day7Main, "Day7_The_Sum_of_Its_Parts/inputFake.txt"},
+  [7] = {day7.day7Main, "Day7_The_Sum_of_Its_Parts/input.txt"},
   --[8] = {day8.day8Main, "Day8_Chronal_Coordinates/inputFake.txt"},
 }
 
