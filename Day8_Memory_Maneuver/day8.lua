@@ -24,9 +24,69 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function parseTree(nbChild, nbMetadata)
+function parseTree(nbChild, nbMetadata, tree)
+  local metadataSum = 0
   print(nbChild)
   print(nbMetadata)
+  if tonumber(nbChild) > 0 then
+    for i = 1, nbChild do
+      currentMetadataSum, tree = parseTree(tree[1], tree[2], table.move(tree, 3, #tree, 1, {}))
+      metadataSum = metadataSum + currentMetadataSum
+    end
+  end
+
+  -- Collect the sum of metadata
+  for i = 1, nbMetadata do
+    metadataSum = metadataSum + tree[i]
+  end
+  print("METADATA = " .. metadataSum)
+
+  return metadataSum, table.move(tree, nbMetadata+1, #tree, 1, {});
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function computeRootNodeValue(nbChild, nbMetadata, tree)
+  local metadataSum = 0
+  print(nbChild)
+  print(nbMetadata)
+
+  local oldtree = tree
+  if tonumber(nbChild) > 0 then
+    --print("FOUND CHILD")
+    local childrenMetadataSum = {}
+    for i = 1,nbChild do
+      --print("CHILD " .. i)
+      currentMetadataSum, tree = computeRootNodeValue(tree[1], tree[2], table.move(tree, 3, #tree, 1, {}))
+      print("child value = " .. currentMetadataSum)
+      table.insert(childrenMetadataSum, currentMetadataSum)
+      print(i)
+      print(childrenMetadataSum[i])
+    end
+
+    print(#tree)
+
+    -- Collect the sum of metadata
+    print("nbMetadata = " .. nbMetadata)
+    for i = 1, nbMetadata do
+      print("INDEX = " .. tree[i])
+      print(childrenMetadataSum[tonumber(tree[i])])
+      -- Add child value
+      print(childrenMetadataSum[tonumber(tree[i])])
+      if childrenMetadataSum[tonumber(tree[i])] ~= nil then
+        metadataSum = metadataSum + childrenMetadataSum[tonumber(tree[i])]
+      end
+    end
+  else
+    for i = 1, nbMetadata do
+      metadataSum = metadataSum + tree[i]
+    end
+  end
+
+  print("METADATA = " .. metadataSum)
+
+  return metadataSum, table.move(tree, nbMetadata+1, #tree, 1, {});
 end
 
 ------------------------------------------------------------------------
@@ -45,9 +105,7 @@ local function partOne (inputFile)
 
   tree = helper.splitString(linearTree, {" "})
 
-  parseTree(linearTree[1], linearTree[2])
-
-  return 0;
+  return parseTree(tree[1], tree[2], table.move(tree, 3, #tree, 1, {}));
 end
 
 ------------------------------------------------------------------------
@@ -59,9 +117,14 @@ end
 ------------------------------------------------------------------------
 local function partTwo (inputFile)
 
-  -- TODO
+  -- Read the entire file at once.
+  linearTree = inputFile:read("*all")
 
-  return 0;
+  print(linearTree)
+
+  tree = helper.splitString(linearTree, {" "})
+
+  return computeRootNodeValue(tree[1], tree[2], table.move(tree, 3, #tree, 1, {}));
 end
 
 
