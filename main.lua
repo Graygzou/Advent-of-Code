@@ -13,6 +13,7 @@ require "Day4_Repose_Record.day4"
 require "Day5_Alchemical_Reduction.day5"
 require "Day6_Chronal_Coordinates.day6"
 require "Day7_The_Sum_of_Its_Parts.day7"
+require "Day8_Memory_Maneuver.day8"
 
 -- Variables
 local filename = "";
@@ -26,7 +27,8 @@ local mains = {
   [5] = {day5.day5Main, "Day5_Alchemical_Reduction/input.txt"},
   [6] = {day6.day6Main, "Day6_Chronal_Coordinates/input.txt"},
   [7] = {day7.day7Main, "Day7_The_Sum_of_Its_Parts/input.txt"},
-  --[8] = {day8.day8Main, "Day8_Chronal_Coordinates/inputFake.txt"},
+  [8] = {day8.day8Main, "Day8_Memory_Maneuver/inputFake.txt"},
+  [9] = {day8.day8Main, "Day8_Memory_Maneuver/inputFake.txt"},
 }
 
 -- Retrieve input from the player

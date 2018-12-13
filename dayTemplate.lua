@@ -31,7 +31,7 @@ end
 -- Return
 --    the final result for the part 1.
 ------------------------------------------------------------------------
-function partOne (inputFile)
+local function partOne (inputFile)
 
   -- TODO
 
@@ -45,7 +45,7 @@ end
 -- Return
 --    the final result for the part 2.
 ------------------------------------------------------------------------
-function partTwo (inputFile)
+local function partTwo (inputFile)
 
   -- TODO
 

@@ -119,7 +119,7 @@ end
 -- Return
 --    the final result for the part 1.
 ------------------------------------------------------------------------
-function partOne (inputFile)
+local function partOne (inputFile)
 
   local finalString = ""
   local finalPoint = Set{}
@@ -257,7 +257,7 @@ end
 -- Return
 --    the final result for the part 2.
 ------------------------------------------------------------------------
-function partTwo (inputFile)
+local function partTwo (inputFile)
   local extraTime = 60
   local workersNum = 5
 

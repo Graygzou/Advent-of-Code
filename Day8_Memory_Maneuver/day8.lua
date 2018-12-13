@@ -4,9 +4,6 @@
 --#                                                               #
 --# Template used for every main script for the day X of the AoC  #
 --#################################################################
--- Note:
--- To use it Press Ctrl + F and replace "DayX" by "Day" and the associated number.
---
 
 local P = {} -- packages
 
@@ -25,15 +22,30 @@ end
 --#################################################################
 
 ------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function parseTree(nbChild, nbMetadata)
+  print(nbChild)
+  print(nbMetadata)
+end
+
+------------------------------------------------------------------------
 -- partOne - function used for the part 1
 -- Params:
 --    - inputFile : file handler, input handle.
 -- Return
 --    the final result for the part 1.
 ------------------------------------------------------------------------
-function partOne (inputFile)
+local function partOne (inputFile)
 
-  -- TODO
+  -- Read the entire file at once.
+  linearTree = inputFile:read("*all")
+
+  print(linearTree)
+
+  tree = helper.splitString(linearTree, {" "})
+
+  parseTree(linearTree[1], linearTree[2])
 
   return 0;
 end
@@ -45,7 +57,7 @@ end
 -- Return
 --    the final result for the part 2.
 ------------------------------------------------------------------------
-function partTwo (inputFile)
+local function partTwo (inputFile)
 
   -- TODO
 
