@@ -13,6 +13,7 @@ require "Day4_Repose_Record.day4"
 require "Day5_Alchemical_Reduction.day5"
 require "Day6_Chronal_Coordinates.day6"
 require "Day7_The_Sum_of_Its_Parts.day7"
+require "Day8_Memory_Maneuver.day8"
 require "Day9_Marble_Mania.day9"
 
 -- Variables
@@ -28,7 +29,7 @@ local mains = {
   [6] = {day6.day6Main, "Day6_Chronal_Coordinates/input.txt"},
   [7] = {day7.day7Main, "Day7_The_Sum_of_Its_Parts/input.txt"},
   [8] = {day8.day8Main, "Day8_Memory_Maneuver/input.txt"},
-  [9] = {day9.day9Main, "Day9_Marble_Mania/inputFake.txt"},
+  [9] = {day9.day9Main, "Day9_Marble_Mania/input.txt"},
 }
 
 -- Retrieve input from the player
