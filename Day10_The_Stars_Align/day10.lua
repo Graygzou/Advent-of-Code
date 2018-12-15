@@ -57,14 +57,14 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function forwardNSeconds(positions, velocities, nbSeconds)
-  --for seconds = 1,nbSeconds do
-  for i = 1,#positions do
-    positions[i][1] = positions[i][1] + velocities[i][1]
-    positions[i][2] = positions[i][2] + velocities[i][2]
+function forwardNSeconds(oldPositions, velocities)
+  local newPosition = {}
+  for i = 1,#oldPositions do
+    newPosition[i] = {}
+    newPosition[i][1] = oldPositions[i][1] + velocities[i][1]
+    newPosition[i][2] = oldPositions[i][2] + velocities[i][2]
   end
-  --end
-  return positions
+  return newPosition
 end
 
 
@@ -85,9 +85,6 @@ end
 ------------------------------------------------------------------------
 function printFrame(positions, minPositionX, maxPositionX, minPositionY, maxPositionY)
   -- Create the matrix to store all points
-  print("X" .. maxPositionX-minPositionX)
-  print("Y" .. maxPositionY-minPositionY)
-
   local finalMatrix = {}
   for j = 1,(maxPositionY-minPositionY)+1 do
     finalMatrix[j] = {}
@@ -96,15 +93,10 @@ function printFrame(positions, minPositionX, maxPositionX, minPositionY, maxPosi
     end
   end
 
-  print(#finalMatrix)
-
   -- Iterate over all the points to add them to the matrix
   for i = 1,#positions do
     x = tonumber(positions[i][1]) - tonumber(minPositionX) + 1
     y = tonumber(positions[i][2]) - tonumber(minPositionY) + 1
-
-    --print(x)
-    --print(y)
     finalMatrix[y][x] = "#"
   end
 
@@ -129,8 +121,8 @@ local function partOne (inputFile)
 
   local daysStruct = helper.saveLinesToArray(inputFile);
 
-  positions = {}
-  velocities = {}
+  local positions = {}
+  local velocities = {}
 
   for i = 1,#daysStruct do
     temp = helper.splitString(daysStruct[i], {"a-z", "=<", ", ", ">"})
@@ -149,40 +141,30 @@ local function partOne (inputFile)
   found = false
   currentTimeFrame = 0
   while not found and currentTimeFrame < 100000 do
-
     -- Increment the time frame
     currentTimeFrame = currentTimeFrame + 1
 
     -- Apply the velocity to the set of position
+    local newPositions = forwardNSeconds(positions, velocities)
 
-    print("START")
-    positions = forwardNSeconds(positions, velocities, 1)
-    print("END")
-
-    currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY = findBoundingBox(positions)
+    currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY = findBoundingBox(newPositions)
 
     verticalExpansion = minPositionY > currentMinPositionY or maxPositionY < currentMaxPositionY  --bool
     horizontalExpansion = minPositionX > currentMinPositionX or maxPositionX < currentMaxPositionX  --bool
     found = verticalExpansion or horizontalExpansion
 
     if not found then
+      -- Update all the values for the next iteration
+      positions = newPositions
       minPositionX = currentMinPositionX
       maxPositionX = currentMaxPositionX
       minPositionY = currentMinPositionY
       maxPositionY = currentMaxPositionY
     end
-
-    print("Time frame : " .. currentTimeFrame)
-
-    print("minPositionX" .. minPositionX .. ", maxPositionX : " .. maxPositionX)
-    print("minPositionY" .. minPositionY .. ", maxPositionY : " .. maxPositionY)
-
-    if tonumber(maxPositionY-minPositionY) < 30 then
-      printFrame(positions, currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY)
-    end
   end
 
-  printFrame(positions, currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY)
+  print("Time frame : " .. currentTimeFrame)
+  printFrame(positions, minPositionX, maxPositionX, minPositionY, maxPositionY)
 
   return 0;
 end
@@ -196,7 +178,7 @@ end
 ------------------------------------------------------------------------
 local function partTwo (inputFile)
 
-  -- TODO
+  -- nothing
 
   return 0;
 end
