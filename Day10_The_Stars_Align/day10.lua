@@ -25,6 +25,100 @@ end
 --#################################################################
 
 ------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function findBoundingBox (positions)
+  MinPositionX = tonumber(positions[1][1])
+  MaxPositionX = tonumber(positions[1][1])
+
+  MinPositionY = tonumber(positions[1][2])
+  MaxPositionY = tonumber(positions[1][2])
+
+  for i = 2,#positions do
+    currentPositionX = tonumber(positions[i][1])
+    currentPositionY = tonumber(positions[i][2])
+
+    if currentPositionX < MinPositionX then
+      MinPositionX = currentPositionX
+    end
+    if currentPositionX > MaxPositionX then
+      MaxPositionX = currentPositionX
+    end
+    if currentPositionY < MinPositionY then
+      MinPositionY = currentPositionY
+    end
+    if currentPositionY > MaxPositionY then
+      MaxPositionY = currentPositionY
+    end
+  end
+  return MinPositionX, MaxPositionX, MinPositionY, MaxPositionY
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function forwardNSeconds(positions, velocities, nbSeconds)
+  --for seconds = 1,nbSeconds do
+  for i = 1,#positions do
+    positions[i][1] = positions[i][1] + velocities[i][1]
+    positions[i][2] = positions[i][2] + velocities[i][2]
+  end
+  --end
+  return positions
+end
+
+
+function pointInsidePosition(coordX, coordY, positions)
+  found = false
+
+  local i = 1
+  while i < #positions and found do
+    found = positions[i][1] == coordX and positions[i][2] == coordY
+    i = i + 1
+  end
+
+  return found
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function printFrame(positions, minPositionX, maxPositionX, minPositionY, maxPositionY)
+  -- Create the matrix to store all points
+  print("X" .. maxPositionX-minPositionX)
+  print("Y" .. maxPositionY-minPositionY)
+
+  local finalMatrix = {}
+  for j = 1,(maxPositionY-minPositionY)+1 do
+    finalMatrix[j] = {}
+    for i = 1, (maxPositionX-minPositionX)+1 do
+      finalMatrix[j][i] = "."
+    end
+  end
+
+  print(#finalMatrix)
+
+  -- Iterate over all the points to add them to the matrix
+  for i = 1,#positions do
+    x = tonumber(positions[i][1]) - tonumber(minPositionX) + 1
+    y = tonumber(positions[i][2]) - tonumber(minPositionY) + 1
+
+    --print(x)
+    --print(y)
+    finalMatrix[y][x] = "#"
+  end
+
+  for j = 1,#finalMatrix do
+    local string = ""
+    for i = 1,#finalMatrix[j] do
+      string = string .. finalMatrix[j][i]
+    end
+    print(string)
+  end
+end
+
+
+------------------------------------------------------------------------
 -- partOne - function used for the part 1
 -- Params:
 --    - inputFile : file handler, input handle.
@@ -33,7 +127,62 @@ end
 ------------------------------------------------------------------------
 local function partOne (inputFile)
 
-  -- TODO
+  local daysStruct = helper.saveLinesToArray(inputFile);
+
+  positions = {}
+  velocities = {}
+
+  for i = 1,#daysStruct do
+    temp = helper.splitString(daysStruct[i], {"a-z", "=<", ", ", ">"})
+    table.insert(positions, {temp[1], temp[2]})
+    table.insert(velocities, {temp[3], temp[4]})
+  end
+
+  minPositionX, maxPositionX, minPositionY, maxPositionY = findBoundingBox(positions)
+
+  local initialMaxX = maxPositionX
+  local initialMinX = minPositionX
+  local initialMaxY = maxPositionY
+  local initialMinY = minPositionY
+
+  -- For every time frame
+  found = false
+  currentTimeFrame = 0
+  while not found and currentTimeFrame < 100000 do
+
+    -- Increment the time frame
+    currentTimeFrame = currentTimeFrame + 1
+
+    -- Apply the velocity to the set of position
+
+    print("START")
+    positions = forwardNSeconds(positions, velocities, 1)
+    print("END")
+
+    currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY = findBoundingBox(positions)
+
+    verticalExpansion = minPositionY > currentMinPositionY or maxPositionY < currentMaxPositionY  --bool
+    horizontalExpansion = minPositionX > currentMinPositionX or maxPositionX < currentMaxPositionX  --bool
+    found = verticalExpansion or horizontalExpansion
+
+    if not found then
+      minPositionX = currentMinPositionX
+      maxPositionX = currentMaxPositionX
+      minPositionY = currentMinPositionY
+      maxPositionY = currentMaxPositionY
+    end
+
+    print("Time frame : " .. currentTimeFrame)
+
+    print("minPositionX" .. minPositionX .. ", maxPositionX : " .. maxPositionX)
+    print("minPositionY" .. minPositionY .. ", maxPositionY : " .. maxPositionY)
+
+    if tonumber(maxPositionY-minPositionY) < 30 then
+      printFrame(positions, currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY)
+    end
+  end
+
+  printFrame(positions, currentMinPositionX, currentMaxPositionX, currentMinPositionY, currentMaxPositionY)
 
   return 0;
 end

@@ -15,6 +15,7 @@ require "Day6_Chronal_Coordinates.day6"
 require "Day7_The_Sum_of_Its_Parts.day7"
 require "Day8_Memory_Maneuver.day8"
 require "Day9_Marble_Mania.day9"
+require "Day10_The_Stars_Align.day10"
 
 -- Variables
 local filename = "";
@@ -30,6 +31,7 @@ local mains = {
   [7] = {day7.day7Main, "Day7_The_Sum_of_Its_Parts/input.txt"},
   [8] = {day8.day8Main, "Day8_Memory_Maneuver/input.txt"},
   [9] = {day9.day9Main, "Day9_Marble_Mania/input.txt"},
+  [10] = {day10.day10Main, "Day10_The_Stars_Align/input.txt"},
 }
 
 -- Retrieve input from the player
