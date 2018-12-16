@@ -22,24 +22,25 @@ end
 --#################################################################
 
 ------------------------------------------------------------------------
---
+-- Add 4 dots if needed (Just to be sure everything works correctly)
 ------------------------------------------------------------------------
-function addMissingDots(string)
+function addMissingDots(state, potsStartNum)
+
   -- Add beginning dots if needed
-  if string.sub(string,1,1) == "#" or string.sub(string,2,2) == "#" then
-    string = ".." .. string
+  if string.find(string.sub(state, 1, 5), "#") ~= nil then
+    state = "...." .. state
+    potsStartNum = potsStartNum - 4
   end
 
   -- Add ending dots if needed
-  if string.sub(string,#string,#string) == "#" or string.sub(string,#string-1,#string-1) == "#" then
-    string = string .. ".."
+  if string.find(string.sub(state, #state-4, #state), "#") ~= nil then
+    state = state .. "...."
   end
 
-  return string
+  return state, potsStartNum
 end
 
 ------------------------------------------------------------------------
---
 -- Post-condition : Both strings should be the same length.
 ------------------------------------------------------------------------
 function mergeString (string1, string2)
@@ -60,27 +61,80 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function applyAllRules(state, rules)
-  local finalState = state
-  print(state)
+function sanitizedState (state, potsStartNum)
+  state = string.gsub(string.gsub(string.gsub(state, '#', '.'), '!', '#'), ',', '.')
+  state, potsStartNum = addMissingDots(state, potsStartNum)
+
+  return state, potsStartNum
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function applyAllRules(state, rules, potsStartNum)
+  local finalState = nil
   for i = 1,#rules do
     local match = false
-    print("CURRENT RULE : " .. rules[i].pattern .. " =>" .. rules[i].replace)
-
-    local tempState = string.gsub(state, rules[i].pattern, function(string)
-      match = true
-      --print("MATCH : " .. string ..  " =>" .. string.sub(string,1,2) .. rules[i].replace .. string.sub(string,4,5))
-      print("MATCH : " .. string ..  " =>" .. ".." .. rules[i].replace .. "..")
-      return string.sub(string,1,2) .. rules[i].replace .. string.sub(string,4,5)
-    end)
-
-    if match then
-      finalState = tempState -- mergeString(finalState, tempState)
+    tempState, nbMatch = helper.findAndReplaceString(state, rules[i].pattern, 5, rules[i].replace)
+    if nbMatch > 0 then
+      finalState = mergeString(finalState, tempState)
     end
-    print(match)
-    print(finalState)
   end
-  return finalState
+  finalState, potsStartNum = sanitizedState(finalState, potsStartNum)
+  return finalState, potsStartNum
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function computePart2Result(nbPots, currentIteration, finalIteration, scoreCurrentIteration, valueFirstPot)
+  print("nbPots : ", nbPots)
+  print("currentIteration : ", currentIteration)
+  print("finalIteration : ", finalIteration)
+  print("scoreCurrentIteration : ", scoreCurrentIteration)
+  print("valueFirstPot : ", valueFirstPot)
+
+  addedSpace = finalIteration - currentIteration  -- correspond to the missing space the finalIteration will generate
+
+  print("addedSpace", addedSpace)
+
+  return scoreCurrentIteration + (nbPots * addedSpace)
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function countPotsNum(currentState, potsStartNum, LASTFIRSTPOTNUM)
+  local totalNum = 0
+  local first = true
+  local counter = potsStartNum
+  local nbPots = 0
+  local valueFirstPot = 0
+
+  for i=1,#currentState do
+    if currentState:sub(i,i) == "#" then
+      if first then
+        first = false
+        valueFirstPot = counter
+        print("INDEX : ", valueFirstPot)
+        if LASTFIRSTPOTNUM + 1 ~= counter then
+          print("WRONG")
+          LASTFIRSTPOTNUM = counter
+        else
+          LASTFIRSTPOTNUM = LASTFIRSTPOTNUM + 1
+        end
+      end
+      nbPots = nbPots + 1
+      totalNum = totalNum + counter
+    end
+    counter = counter + 1
+  end
+
+  print("FINAL PART 2 :",computePart2Result(nbPots, 1000, 50000000000, totalNum, valueFirstPot))
+
+  print("NB POTS", nbPots)
+
+  return totalNum, LASTFIRSTPOTNUM
 end
 
 ------------------------------------------------------------------------
@@ -91,12 +145,13 @@ end
 --    the final result for the part 1.
 ------------------------------------------------------------------------
 local function partOne (inputFile)
+  local potsStartNum = 0
 
   local fileLines = helper.saveLinesToArray(inputFile);
 
   -- Retrieve the initial state
   local initialState = helper.splitString(fileLines[1], {"a-z", ": ","\n"})[1]
-  initialState = addMissingDots(initialState)
+  initialState, potsStartNum = addMissingDots(initialState, potsStartNum)
 
   print(initialState)
 
@@ -107,20 +162,29 @@ local function partOne (inputFile)
     local currentRules = helper.splitString(fileLines[i], {" => "})
     rules[index] = {pattern=string.gsub(currentRules[1],"%.","%%."), replace=(string.gsub(currentRules[2],"\n",""))}
 
-    print(rules[index].pattern .. "," .. rules[index].replace)
+    --print(rules[index].pattern .. "," .. rules[index].replace)
 
     index = index + 1
   end
 
-  local nbGeneration = 1
+  local LASTFIRSTPOTNUM = 0
+
+  local nbGeneration = 1000
   local currentState = initialState
   for i = 1, nbGeneration do
+    print(i)
     --Apply all the rules where it can be on the current state
-    currentState = applyAllRules(currentState, rules)
+    currentState, potsStartNum = applyAllRules(currentState, rules, potsStartNum)
     print(currentState)
+
+    --LASTFIRSTPOTNUM = select(2, countPotsNum(currentState, potsStartNum, LASTFIRSTPOTNUM))
   end
 
-  return currentState;
+  print("FINAL POT NUM : ", potsStartNum)
+
+  local finalRes = countPotsNum(currentState, potsStartNum, LASTFIRSTPOTNUM)
+
+  return finalRes;
 end
 
 ------------------------------------------------------------------------

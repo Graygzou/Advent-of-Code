@@ -103,19 +103,40 @@ function Set (list)
   return set;
 end
 
----------------------------------------
--- Set - function to create set data structure
--- Params:
---    - list : existing (can be empty) list.
--- Return:
---     the set datastructure.
----------------------------------------
-function Set (list)
-  local set = {};
-  for _, l in ipairs (list) do set[l] = true end;
-  return set;
-end
+---------------------------------------------
+-- gsub but works with overlapping pattern
+---------------------------------------------
+function findAndReplaceString (string, pattern, patternSize, replace)
+  local finalString = string
+  local nbMatch = 0
+  patternSize = patternSize - 1
 
+  for i= 1, #string - patternSize do
+    m = string:sub(i, i + patternSize):match(pattern);
+    if m then
+      nbMatch = nbMatch + 1   -- Just for debug purpose
+
+      local replaceChar = "!"
+      if replace == "#" then
+        replaceChar = "!"
+      elseif replace == "." then
+        replaceChar = ","
+      end
+      finalString = finalString:sub(1, i+1) .. replaceChar .. finalString:sub(i+3, #finalString)
+    end
+  end
+  return finalString, nbMatch
+end
+---------------------------------------------
+-- Tests
+---------------------------------------------
+print("---------------------------------------------")
+print("Tests findAndReplaceString function : ")
+print("---------------------------------------------")
+print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....####..####")
+print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
+print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
+print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
 
 --#################################################################
 -- Package end
@@ -127,6 +148,7 @@ helper = {
   splitString = splitString,
   saveLinesToArray = saveLinesToArray,
   Set = Set,
+  findAndReplaceString = findAndReplaceString,
 }
 
 return helper
