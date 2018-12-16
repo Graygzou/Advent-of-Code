@@ -158,6 +158,11 @@ local function partTwo (serialNumber)
     end
   end
 
+  --------------------
+  -- A possible solution to speed up the process can be to use another lookup table to register using the memoization current total power size
+  -- It will allow to only add to this result right side and bottom side. It will use bigger Memory space but less GPU.
+  --------------------
+
   -- For any size of square
   for size=1,300 do
     -- Foreach possible total power cell.
