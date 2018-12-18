@@ -49,8 +49,6 @@ end
 function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingSymbols)
   local index = 1
 
-  print("GOGOGOGOGO")
-
   repeat
     -- Find the first char representing the TOP LEFT of the loop
     startingLoop = findNextSymbol(currentLine, index, #currentLine, startingSymbols)
@@ -67,12 +65,6 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
 
       -- Find the first char representing the TOP RIGHT of the loop
       endingLoop = findNextSymbol(currentLine, index, #currentLine, endingSymbols)
-
-      --endingLoop = string.find(currentLine:sub(index, #currentLine), endingSymbols[1])
-
-      --if endingLoop == nil then
-      --  endingLoop = string.find(currentLine:sub(index, #currentLine), endingSymbols[2])
-      --end
 
       if endingLoop ~= nil then
         index = index + select(1, endingLoop)
@@ -91,18 +83,18 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
             print(endingIndex)
           end
 
-          if tracks[i].topleft.y == startingIndex and tracks[i].topright.y == endingIndex then
+          if tracks[i].topleft.x == startingIndex and tracks[i].topright.x == endingIndex then
             print("MATCH !")
             found = true        -- Update the boolean
-            tracks[i].bottomleft = point.new{lineIndex-1, startingIndex}
-            tracks[i].bottomright = point.new{lineIndex-1, endingIndex}
+            tracks[i].bottomleft = point.new{startingIndex, lineIndex-1}
+            tracks[i].bottomright = point.new{endingIndex, lineIndex-1}
           end
         end
 
         if not found then
           -- Insert the new loop
-          table.insert(tracks, {topleft = point.new{lineIndex-1, startingIndex},
-                                topright = point.new{lineIndex-1, endingIndex},
+          table.insert(tracks, {topleft = point.new{startingIndex, lineIndex-1},
+                                topright = point.new{endingIndex, lineIndex-1},
                                 bottomleft = nil,
                                 bottomright = nil})
         end
@@ -119,20 +111,22 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
 end
 
 ------------------------------------------------------------------------
---
+-- Add a card if found on the line
+-- A card is composed by a velocity, an int nextTurn (contains the info to guide him when finding junctions)
+-- a current position (could store a list of already visited cells instead..) and a current path the card is on.
 ------------------------------------------------------------------------
-function addCards(currentLine, cards, coordX, cardDirection, velocity)
+function addCards(currentLine, cards, coordY, cardDirection, velocity)
   local index = 1
-  local coordYCard = nil
+  local coordXCard = nil
   repeat
-    coordYCard = currentLine:sub(index, #currentLine):find(cardDirection)
-    if coordYCard ~= nil then
-      -- Add the found card to the struct
-      table.insert(cards, {velocity = point.new(velocity), path = {point.new{coordX, index + coordYCard - 2}}})
+    coordXCard = currentLine:sub(index, #currentLine):find(cardDirection)
+    if coordXCard ~= nil then
+      -- Add the found card to the struct (nextTurn = 0 mean he will turn left)
+      table.insert(cards, {position=point.new{index+coordXCard-2, coordY}, velocity = point.new(velocity), nextTurn=0, currentLoop=nil})
 
-      index = index + coordYCard    --Update the index to move on
+      index = index + coordXCard    --Update the index to move on
     end
-  until coordYCard == nil or index >= #currentLine
+  until coordXCard == nil or index >= #currentLine
 end
 
 ------------------------------------------------------------------------
@@ -153,6 +147,43 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
+function assignInitialLoopToCards(cards, tracks)
+  for i = 1, #cards do
+    local found = false
+    local loopIndex = 0
+
+    print("Cards : position = " .. point.toString(cards[i].position, 2))
+
+    repeat
+      loopIndex = loopIndex + 1
+
+      -- Retrieve the current loop
+      print(loopIndex)
+      local currentLoop = tracks[loopIndex]
+
+      print("(" .. currentLoop.topleft.x .. ", " .. currentLoop.topleft.y .. "), (" .. currentLoop.topright.x .. ", " .. currentLoop.topright.y .. ") , (" .. currentLoop.bottomleft.x .. ", " .. currentLoop.bottomleft.y .. "), (" .. currentLoop.bottomright.x .. ", " .. currentLoop.bottomright.y .. ")")
+
+      -- Vertical alignment or horizontal alignment
+      found = ((cards[i].position.x == currentLoop.topleft.x or cards[i].position.x == currentLoop.topright.x) and
+                cards[i].position.y >= currentLoop.topleft.y and cards[i].position.y <= currentLoop.bottomleft.y)
+              or
+              ((cards[i].position.y == currentLoop.topleft.y or cards[i].position.y == currentLoop.bottomleft.y) and
+                cards[i].position.x >= currentLoop.topleft.x and cards[i].position.x <= currentLoop.topright.x)
+
+      if found then
+        print("FOUNDED")
+        cards[i].currentLoop = currentLoop
+      end
+
+    until found or loopIndex >= #tracks  -- EVERY card should be on a loop
+
+    print("Cards : loop = " .. point.toString(cards[i].currentLoop.topleft, 2) .. ", " .. point.toString(cards[i].currentLoop.topright, 2))
+  end
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
 function constructTracks(lines)
 
   local tracks = {}
@@ -168,29 +199,9 @@ function constructTracks(lines)
     findCards(lines[i], i, cards)     -- Add new possible cards
   end
 
-  -- DEBUG CARDS
-  print("NB CARDS FOUND = " .. #cards)
-  for i = 1,#cards do
-    print("Cards : velocity = (" .. cards[i].velocity.x .. "," .. cards[i].velocity.y .. ")")
+  assignInitialLoopToCards(cards, tracks)
 
-    pathString = ""
-    for j = 1, #cards[i].path do
-      pathString = pathString .. point.toString(cards[i].path[j], 2)
-    end
-    print("Path = " .. pathString)
-  end
-
-  -- DEBUG TRACK
-  print("NB LOOP FOUND = " .. #tracks)
-  for i = 1,#tracks do
-    if tracks[i].bottomleft ~= nil and tracks[i].bottomright ~= nil then
-      print("(" .. tracks[i].topleft.x .. ", " .. tracks[i].topleft.y .. "), (" .. tracks[i].topright.x .. ", " .. tracks[i].topright.y .. ") , (" .. tracks[i].bottomleft.x .. ", " .. tracks[i].bottomleft.y .. "), (" .. tracks[i].bottomright.x .. ", " .. tracks[i].bottomright.y .. ")")
-    else
-      print(tracks[i].bottomleft)
-      print(tracks[i].bottomright)
-      print("(" .. tracks[i].topleft.x .. ", " .. tracks[i].topleft.y .. "), (" .. tracks[i].topright.x .. ", " .. tracks[i].topright.y .. ")")
-    end
-  end
+  return tracks, cards
 end
 ------------------------------------------------------------------------
 -- Tests
@@ -202,6 +213,23 @@ print("Tests constructTacks function :")
 --constructTracks({ "    /----\\   /------\\    ", "    \\+--+/   \\+-----/    " })
 --constructTracks({ "    /----\\   /------\\    ", "  /------\\    /-----\\      " , "    \\+--+/   \\------/    " })
 --constructTracks({ "tttt----fez---fezf-----------" })
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function findFirstCrash (tracks, cards)
+  local tick = 0
+  -- Keep going until a crash or reach threshold
+  while not crash and tick < 5000000000 do
+    -- Iterate over all the cards and make them move thanks to their velocity
+    for i = 1, #cards do
+
+    end
+    crash = true
+    tick = tick + 1
+  end
+
+end
 
 
 ------------------------------------------------------------------------
@@ -215,14 +243,32 @@ local function partOne (inputFile)
 
   local fileLines = helper.saveLinesToArray(inputFile);
 
-  -- Construct the tracks with custom struct
-  constructTracks(fileLines)
+  local tracks = {}
+  local cards = {}
 
-  local loop1 = {topRight = "",
-                 topLeft = "",
-                 bottomRight = "",
-                 bottomLeft = "",
-                 junctions = {}}
+  -- Construct the tracks with custom struct
+  tracks, cards =  constructTracks(fileLines)
+
+  -- CARDS
+  print("NB CARDS FOUND = " .. #cards)
+  for i = 1,#cards do
+    print("Cards : position = " .. point.toString(cards[i].position, 2) .. ", velocity = " .. point.toString(cards[i].velocity, 2) .. ", loop : " .. point.toString(cards[i].currentLoop.topleft, 2) .. ", " .. point.toString(cards[i].currentLoop.topright, 2) .. ", " .. point.toString(cards[i].currentLoop.bottomleft, 2) .. ", " .. point.toString(cards[i].currentLoop.bottomright, 2))
+  end
+
+  -- TRACK
+  print("NB LOOP FOUND = " .. #tracks)
+  for i = 1,#tracks do
+    if tracks[i].bottomleft ~= nil and tracks[i].bottomright ~= nil then
+      print("(" .. tracks[i].topleft.x .. ", " .. tracks[i].topleft.y .. "), (" .. tracks[i].topright.x .. ", " .. tracks[i].topright.y .. ") , (" .. tracks[i].bottomleft.x .. ", " .. tracks[i].bottomleft.y .. "), (" .. tracks[i].bottomright.x .. ", " .. tracks[i].bottomright.y .. ")")
+    else
+      print(tracks[i].bottomleft)
+      print(tracks[i].bottomright)
+      print("(" .. tracks[i].topleft.x .. ", " .. tracks[i].topleft.y .. "), (" .. tracks[i].topright.x .. ", " .. tracks[i].topright.y .. ")")
+    end
+  end
+
+  -- Algorithm that will simulate the tick and find the first crash
+  findFirstCrash(tracks, cards)
 
   return 0;
 end
