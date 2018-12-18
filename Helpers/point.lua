@@ -41,6 +41,39 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
+function add(list1, list2)
+  if #list1 ~= #list2 then return end
+  local newPoint = list1
+  for i = 1, #list2 do
+    newPoint[i] = newPoint[i] + list2[i]
+  end
+  return newPoint
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function equals(list1, list2)
+  if #list1 ~= #list2 then return end
+  local equals = true
+  for i = 1, #list2 do
+    equals = equals and list1[i] == list2[i]
+  end
+  return equals
+end
+------------------------------------------------------------------------
+-- Tests
+------------------------------------------------------------------------
+print("Tests equals function for point : ")
+print(equals({4,8}, {4,8}) == true)
+print(equals({4,8}, {8,4}) == false)
+print(equals({0,9}, {0,8}) == false)
+print(equals({9,0}, {9,0}) == true)
+print(equals({6,9}, {2,9}) == false)
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
 function toString(currentPoint, dimension)
   finalString = ""
   if dimension == 2 then
@@ -59,6 +92,8 @@ end
 -- All the functions here are public outside the package
 point = {
   new = new,
+  add = add,
+  equals = equals,
   toString = toString,
 }
 

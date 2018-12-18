@@ -105,6 +105,9 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
     end
   until startingLoop == nil or index >= #currentLine
 
+
+  -- TODO assign junction points to the loop (both loop contains 1 junction point)
+
   --for i = 1,#tracks do
   --  print("(" .. tracks[i].topleft.x .. ", " .. tracks[i].topleft.y .. "), (" .. tracks[i].topright.x .. ", " .. tracks[i].topright.y .. ")")
   --end
@@ -147,7 +150,8 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function assignInitialLoopToCards(cards, tracks)
+function assignLoopToCards(cards, tracks)
+  -- For each card provided
   for i = 1, #cards do
     local found = false
     local loopIndex = 0
@@ -165,10 +169,12 @@ function assignInitialLoopToCards(cards, tracks)
 
       -- Vertical alignment or horizontal alignment
       found = ((cards[i].position.x == currentLoop.topleft.x or cards[i].position.x == currentLoop.topright.x) and
-                cards[i].position.y >= currentLoop.topleft.y and cards[i].position.y <= currentLoop.bottomleft.y)
+                cards[i].position.y >= currentLoop.topleft.y and cards[i].position.y <= currentLoop.bottomleft.y and
+                (point.equals({cards[i].velocity.x, cards[i].velocity.y}, {0, -1}) or point.equals({cards[i].velocity.x, cards[i].velocity.y}, {0, 1})))
               or
               ((cards[i].position.y == currentLoop.topleft.y or cards[i].position.y == currentLoop.bottomleft.y) and
-                cards[i].position.x >= currentLoop.topleft.x and cards[i].position.x <= currentLoop.topright.x)
+                cards[i].position.x >= currentLoop.topleft.x and cards[i].position.x <= currentLoop.topright.x and
+                (point.equals({cards[i].velocity.x, cards[i].velocity.y}, {-1, 0}) or point.equals({cards[i].velocity.x, cards[i].velocity.y}, {1, 0})))
 
       if found then
         print("FOUNDED")
@@ -199,7 +205,7 @@ function constructTracks(lines)
     findCards(lines[i], i, cards)     -- Add new possible cards
   end
 
-  assignInitialLoopToCards(cards, tracks)
+  assignLoopToCards(cards, tracks)
 
   return tracks, cards
 end
@@ -218,13 +224,70 @@ print("Tests constructTacks function :")
 --
 ------------------------------------------------------------------------
 function findFirstCrash (tracks, cards)
+  local crash = false
   local tick = 0
+
   -- Keep going until a crash or reach threshold
   while not crash and tick < 5000000000 do
     -- Iterate over all the cards and make them move thanks to their velocity
     for i = 1, #cards do
+      -- Apply the velocity and update the current position
+      cards[i].position = point.add(cards[i].position, cards[i].velocity)
+
+      -- Check, in the current loop, if we meet a junction or not
+      -- TODO
+      -- TODO
+      if junction then
+        -- Check where the card have to go based on his nextTurn and update his velocity
+        if cards[i].nextTurn == 0 or cards[i].nextTurn == 2 then
+          if cards[i].nextTurn == 0 then
+            -------------------
+            -- TURN RIGHT
+            -------------------
+            if point.equals({cards[i].velocity.x, cards[i].velocity.y}, {0, -1}) or point.equals({cards[i].velocity.x, cards[i].velocity.y}, {0, 1}) then
+              cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
+            else
+              cards[i].velocity = point.new{cards[i].velocity.y, -cards[i].velocity.x}
+            end
+          elseif cards[i].nextTurn == 2 then
+            -------------------
+            -- TURN LEFT
+            -------------------
+            if point.equals({cards[i].velocity.x, cards[i].velocity.y}, {0, -1}) or point.equals({cards[i].velocity.x, cards[i].velocity.y}, {0, 1}) then
+              cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
+            else
+              cards[i].velocity = point.new{cards[i].velocity.y, -cards[i].velocity.x}
+            end
+          end
+
+          -- Find the new loop and update the cardLoop
+          assignLoopToCards({ cards[i] }, tracks)
+
+        else
+          -- Go straight == no update
+        end
+
+        cards[i].nextTurn = (cards[i].nextTurn + 1) % 3
+      end
 
     end
+
+    -- Check if there is a collision now
+    obsCardindex = 0
+    repeat
+      obsCardindex = obsCardindex + 1
+
+      for i = 1,#cards do
+        if obsCardindex ~= i then
+          crash = crash or point.equals({cards[i].position.x, cards[i].position.y}, {cards[obsCardindex].position.x, cards[obsCardindex].position.y})
+        end
+      end
+
+      if crash then
+        print("COLLISION !")
+      end
+
+    until crash or obsCardindex >= #cards
     crash = true
     tick = tick + 1
   end
