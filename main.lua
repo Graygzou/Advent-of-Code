@@ -5,10 +5,17 @@
 --# Main function for all the days of the AoC  #
 --##############################################
 
+-----------------------------------------------------
 -- Import all the packages needed.
+-----------------------------------------------------
 package.path = package.path .. ';Helpers/?.lua;'
 require "helper"
 require "list"
+require "point"
+
+-----------------------------------------------------
+-- Import all the days
+-----------------------------------------------------
 require "Day4_Repose_Record.day4"
 require "Day5_Alchemical_Reduction.day5"
 require "Day6_Chronal_Coordinates.day6"
