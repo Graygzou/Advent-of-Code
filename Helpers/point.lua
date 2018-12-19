@@ -41,19 +41,7 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function add(list1, list2)
-  if #list1 ~= #list2 then return end
-  local newPoint = list1
-  for i = 1, #list2 do
-    newPoint[i] = newPoint[i] + list2[i]
-  end
-  return newPoint
-end
-
-------------------------------------------------------------------------
---
-------------------------------------------------------------------------
-function equals(list1, list2)
+function equalsList(list1, list2)
   if #list1 ~= #list2 then return end
   local equals = true
   for i = 1, #list2 do
@@ -65,16 +53,75 @@ end
 -- Tests
 ------------------------------------------------------------------------
 print("Tests equals function for point : ")
-print(equals({4,8}, {4,8}) == true)
-print(equals({4,8}, {8,4}) == false)
-print(equals({0,9}, {0,8}) == false)
-print(equals({9,0}, {9,0}) == true)
-print(equals({6,9}, {2,9}) == false)
+print(equalsList({4,8}, {4,8}) == true)
+print(equalsList({4,8}, {8,4}) == false)
+print(equalsList({0,9}, {0,8}) == false)
+print(equalsList({9,0}, {9,0}) == true)
+print(equalsList({6,9}, {2,9}) == false)
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function equals(point1, point2, dimension)
+  if #point1 ~= #point2 then return end
+  if dimension == nil then
+    dimension = 2
+  end
+  local equals = true
+  equals = equals and point1.x == point2.x
+  equals = equals and point1.y == point2.y
+  if dimension == 3 then
+    equals = equals and point1.z == point2.z
+  end
+  return equals
+end
+
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function addList(list1, list2)
+  if #list1 ~= #list2 then return end
+  local newPoint = list1
+  for i = 1, #list2 do
+    newPoint[i] = newPoint[i] + list2[i]
+  end
+  return newPoint
+end
+------------------------------------------------------------------------
+-- Tests
+------------------------------------------------------------------------
+print("Tests ADD function for list : ")
+print(equalsList(addList({6,5}, {0,0}), {6,5}))
+print(equalsList(addList({6,5}, {0,0}), {6,5}))
+print(equalsList(addList({0,0}, {6,5}), {6,5}))
+print(equalsList(addList({2,2}, {2,2}), {4,4}))
+print(equalsList(addList({2,2}, {-2,-2}), {0,0}))
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function add(point1, point2, dimension)
+  if #point1 ~= #point2 then return end
+  if dimension == nil then
+    dimension = 2
+  end
+  local newPoint = point1
+  newPoint.x = newPoint.x + point2.x
+  newPoint.y = newPoint.y + point2.y
+  if dimension == 3 then
+    newPoint.z = newPoint.z + point2.z
+  end
+  return newPoint
+end
 
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
 function toString(currentPoint, dimension)
+  if dimension == nil then
+    dimension = 2
+  end
   finalString = ""
   if dimension == 2 then
     finalString = finalString .. "(" .. currentPoint.x .. ", " .. currentPoint.y .. ")"
