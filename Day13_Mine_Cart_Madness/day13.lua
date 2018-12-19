@@ -204,12 +204,12 @@ function assignLoopToCards(cards, tracks)
       print(loopIndex)
       local currentLoop = tracks[loopIndex]
 
-      print("(" .. currentLoop.topleft.x .. ", " .. currentLoop.topleft.y .. "), (" .. currentLoop.topright.x .. ", " .. currentLoop.topright.y .. ") , (" .. currentLoop.bottomleft.x .. ", " .. currentLoop.bottomleft.y .. "), (" .. currentLoop.bottomright.x .. ", " .. currentLoop.bottomright.y .. ")")
+      --print("(" .. currentLoop.topleft.x .. ", " .. currentLoop.topleft.y .. "), (" .. currentLoop.topright.x .. ", " .. currentLoop.topright.y .. ") , (" .. currentLoop.bottomleft.x .. ", " .. currentLoop.bottomleft.y .. "), (" .. currentLoop.bottomright.x .. ", " .. currentLoop.bottomright.y .. ")")
 
       -- Vertical alignment or horizontal alignment
       found = isCardOnLoop(cards[i].position, cards[i].velocity, currentLoop)
       if found then
-        print("FOUNDED")
+        --print("FOUNDED")
         cards[i].currentLoop = currentLoop
       end
 
@@ -300,13 +300,21 @@ print("Tests constructTacks function :")
 function isCellJunction(position, cells)
   local found = false
   local i = 1
-  while i < #cells and not found do
-    found = point.equals(position, cells[i], 2)
+  while i <= #cells and not found do
+    found = point.equals(position, cells[i])
     i = i + 1
   end
   return found
 end
 
+------------------------------------------------------------------------
+-- Return a in based on the border edge
+-- 1 : top left
+-- 2 : top right
+-- 3 : bottom right
+-- 4 : bottom left
+-- nil : the cell is not a border edge
+------------------------------------------------------------------------
 function isCellBorderEdge(position, loop)
   return point.equals(position, loop.topleft) or point.equals(position, loop.topright) or point.equals(position, loop.bottomleft) or point.equals(position, loop.bottomright)
 end
@@ -317,10 +325,12 @@ end
 function findFirstCrash (tracks, cards)
   local finalPosition = nil
   local crash = false
-  local tick = 0
+  local tick = 1
 
   -- Keep going until a crash or reach threshold
-  while not crash and tick < 5 do
+  while not crash and tick <= 1000000 do
+    print("*****TICK " .. tick)
+
     -- Iterate over all the cards and make them move thanks to their velocity
     for i = 1, #cards do
       -- Apply the velocity and update the current position
@@ -330,40 +340,55 @@ function findFirstCrash (tracks, cards)
 
       -- Check, in the current loop, if we meet a junction or not
       if isCellJunction(cards[i].position, cards[i].currentLoop.junctions) then
+        print("JUNCTIOOOONS")
+        print(cards[i].nextTurn)
         -- Check where the card have to go based on his nextTurn and update his velocity
-        if cards[i].nextTurn == 0 or cards[i].nextTurn == 2 then
-          if cards[i].nextTurn == 0 then
-            -------------------
-            -- TURN RIGHT
-            -------------------
-            if point.equals(cards[i].velocity, {x=0, y=-1}) or point.equals(cards[i].velocity, {x=0, y=1}) then
-              cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
-            else
-              cards[i].velocity = point.new{cards[i].velocity.y, -cards[i].velocity.x}
-            end
-          elseif cards[i].nextTurn == 2 then
-            -------------------
-            -- TURN LEFT
-            -------------------
-            if point.equals(cards[i].velocity, {x=0, y=-1}) or point.equals(cards[i].velocity, {x=0, y=1}) then
-              cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
-            else
-              cards[i].velocity = point.new{cards[i].velocity.y, -cards[i].velocity.x}
-            end
+        if cards[i].nextTurn == 0 then
+          print("LEFT")
+          -------------------
+          -- TURN LEFT
+          -------------------
+          if point.equals(cards[i].velocity, {x=0, y=-1}) or point.equals(cards[i].velocity, {x=0, y=1}) then
+            cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
+          else
+            cards[i].velocity = point.new{-cards[i].velocity.y, -cards[i].velocity.x}
           end
-          -- Find the new loop and update the cardLoop
-          assignLoopToCards({ cards[i] }, tracks)
-        else
+        elseif cards[i].nextTurn == 1 then
           -------------------
           -- STRAIGHT
           -------------------
           -- no update
+        elseif cards[i].nextTurn == 2 then
+          print("RIGHT")
+          -------------------
+          -- TURN RIGHT
+          -------------------
+          if point.equals(cards[i].velocity, {x=0, y=-1}) or point.equals(cards[i].velocity, {x=0, y=1}) then
+            cards[i].velocity = point.new{-cards[i].velocity.y, cards[i].velocity.x}
+              print("ICI 1")
+          else
+            cards[i].velocity = point.new{cards[i].velocity.y, -cards[i].velocity.x}
+              print("ICI 2")
+          end
         end
+        -- Find the new loop and update the cardLoop
+        assignLoopToCards({ cards[i] }, tracks)
         cards[i].nextTurn = (cards[i].nextTurn + 1) % 3
 
       -- Check, in the current loop, if we meet a border edge
       elseif isCellBorderEdge(cards[i].position, cards[i].currentLoop) then
         print("BORDERRRRR")
+
+        -- Change the velocity of the card
+        if point.equals(cards[i].position, cards[i].currentLoop.topleft) then
+          cards[i].velocity = point.new{-cards[i].velocity.y, -cards[i].velocity.x}
+        elseif point.equals(cards[i].position, cards[i].currentLoop.topright) then
+          cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
+        elseif point.equals(cards[i].position, cards[i].currentLoop.bottomright) then
+          cards[i].velocity = point.new{-cards[i].velocity.y, -cards[i].velocity.x}
+        elseif point.equals(cards[i].position, cards[i].currentLoop.bottomleft) then
+          cards[i].velocity = point.new{cards[i].velocity.y, cards[i].velocity.x}
+        end
       end
 
     end
@@ -388,7 +413,11 @@ function findFirstCrash (tracks, cards)
     until crash or obsCardindex >= #cards
 
     tick = tick + 1
-    print("TICK " .. tick)
+  end
+
+  for i = 1, #cards do
+    -- Apply the velocity and update the current position
+    print("Card " .. i .. " Position = " .. point.toString(cards[i].position) .. " Velocity = " .. point.toString(cards[i].velocity))
   end
 
   return finalPosition
