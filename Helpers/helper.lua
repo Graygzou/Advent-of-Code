@@ -138,6 +138,29 @@ print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.
 print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
 print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
 
+--------------------------------------
+-- Helpers function to execute a bubble sort
+---------------------------------------
+function bubbleSortList (list, swapFunction)
+  local resStruct = list
+
+  for i=#list,1,-1 do
+    for j=1,#list-1 do
+      print(list[j]);
+      print(list[j+1]);
+
+      if swapFunction(list[j], list[j+1]) then
+        local temp = resStruct[j];
+        resStruct[j] = resStruct[j+1];
+        resStruct[j+1] = temp;
+      end
+
+    end -- end for 2
+  end -- end for 1
+  return resStruct;
+end
+
+
 --#################################################################
 -- Package end
 --#################################################################
@@ -149,6 +172,7 @@ helper = {
   saveLinesToArray = saveLinesToArray,
   Set = Set,
   findAndReplaceString = findAndReplaceString,
+  bubbleSortList = bubbleSortList,
 }
 
 return helper
