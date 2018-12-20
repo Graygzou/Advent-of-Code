@@ -133,33 +133,59 @@ end
 print("---------------------------------------------")
 print("Tests findAndReplaceString function : ")
 print("---------------------------------------------")
-print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....####..####")
+print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....!###..!###")
 print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
 print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
 print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
 
---------------------------------------
+-----------------------------------------------------
 -- Helpers function to execute a bubble sort
----------------------------------------
+-----------------------------------------------------
 function bubbleSortList (list, swapFunction)
   local resStruct = list
 
   for i=#list,1,-1 do
     for j=1,#list-1 do
-      print(list[j]);
-      print(list[j+1]);
-
       if swapFunction(list[j], list[j+1]) then
         local temp = resStruct[j];
         resStruct[j] = resStruct[j+1];
         resStruct[j+1] = temp;
       end
-
     end -- end for 2
   end -- end for 1
   return resStruct;
 end
 
+------------------------------------------------------------------------------------
+-- Helpers function know if an element is contained into a list
+-- Return (true, index) if the element is inside the list, (false, nil) otherwise
+------------------------------------------------------------------------------------
+function contains(list, element)
+  if list == {} then return false, nil end
+  local found = false
+  local finalIndex = nil
+  local i = 0
+
+  repeat
+    i = i + 1
+    found = list[i] == element
+    if found then
+      finalIndex = i
+    end
+  until i > #list or found
+  return found, finalIndex
+end
+---------------------------------------------
+-- Tests
+---------------------------------------------
+print("---------------------------------------------")
+print("Tests contains function : ")
+print("---------------------------------------------")
+print(contains({}, 2) == false)
+print(contains({8,4,6,2}, 3) == false)
+print(contains({8,4,6,2}, 4) == true)
+print(contains({8,4,6,2}, 2) == true)
+print(contains({8,4,6,2}, 6) == true)
 
 --#################################################################
 -- Package end
@@ -173,6 +199,7 @@ helper = {
   Set = Set,
   findAndReplaceString = findAndReplaceString,
   bubbleSortList = bubbleSortList,
+  contains = contains,
 }
 
 return helper

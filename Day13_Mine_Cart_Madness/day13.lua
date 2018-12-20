@@ -39,18 +39,6 @@ function findNextSymbol(currentLine, index, sizeLine, symbols)
     end
   end
 
-  --temp1 = currentLine:sub(index, sizeLine):find(symbols[1])
-  --temp2 = currentLine:sub(index, sizeLine):find(symbols[2])
-  --if temp1 ~= nil or temp2 ~= nil then
-  --  if temp1 == nil and temp2 ~= nil then
-  --    finalRes = temp2
-  --  elseif temp2 == nil and temp1 ~= nil then
-  --    finalRes = temp1
-  --  else
-  --    finalRes = math.min(temp1, temp2)
-  --  end
-  --end
-
   return finalRes
 end
 
@@ -64,15 +52,10 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
     -- Find the first char representing the TOP LEFT of the loop
     startingLoop = findNextSymbol(currentLine, index, #currentLine, startingSymbols)
 
-    --print(startingLoop)
-
     if startingLoop ~= nil then
       index = index + select(1, startingLoop)
       local startingIndex = index   -- x variable top-left
       startingIndex = startingIndex - 2
-
-      --print(startingLoop)
-      --print("CURRENT STARTING", currentLine:sub(index, #currentLine))
 
       -- Find the first char representing the TOP RIGHT of the loop
       endingLoop = findNextSymbol(currentLine, index, #currentLine, endingSymbols)
@@ -82,20 +65,9 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
         endingIndex = index   -- x variable top-right
         endingIndex = endingIndex - 1
 
-        -- print(endingLoop)
-        -- print("CURRENT ENDING", currentLine:sub(index, #currentLine))
-
         local found = false
         for i = 1, #tracks do
-          if tracks[i].topleft.y == 33 then
-            print(tracks[i].topleft.y)
-            print(startingIndex)
-            print(tracks[i].topright.y)
-            print(endingIndex)
-          end
-
           if tracks[i].topleft.x == startingIndex and tracks[i].topright.x == endingIndex then
-            --print("MATCH !")
             found = true        -- Update the boolean
             tracks[i].bottomleft = point.new{startingIndex, lineIndex-1}
             tracks[i].bottomright = point.new{endingIndex, lineIndex-1}
@@ -112,9 +84,6 @@ function constructLoop (currentLine, lineIndex, tracks, startingSymbols, endingS
             junctions = {}
           })
         end
-
-        --print(startingLoop)
-        --print(index)
       end
     end
   until startingLoop == nil or index >= #currentLine
@@ -195,27 +164,20 @@ function assignLoopToCards(cards, tracks)
     local found = false
     local loopIndex = 0
 
-    --print("Cards : position = " .. point.toString(cards[i].position, 2))
-
     repeat
       loopIndex = loopIndex + 1
 
       -- Retrieve the current loop
-      --print(loopIndex)
       local currentLoop = tracks[loopIndex]
-
-      --print("(" .. currentLoop.topleft.x .. ", " .. currentLoop.topleft.y .. "), (" .. currentLoop.topright.x .. ", " .. currentLoop.topright.y .. ") , (" .. currentLoop.bottomleft.x .. ", " .. currentLoop.bottomleft.y .. "), (" .. currentLoop.bottomright.x .. ", " .. currentLoop.bottomright.y .. ")")
 
       -- Vertical alignment or horizontal alignment
       found = isCardOnLoop(cards[i].position, cards[i].velocity, currentLoop)
       if found then
-        --print("FOUNDED")
         cards[i].currentLoop = currentLoop
       end
-
     until found or loopIndex >= #tracks  -- EVERY card should be on a loop
 
-    print("Cards : loop = " .. point.toString(cards[i].currentLoop.topleft, 2) .. ", " .. point.toString(cards[i].currentLoop.topright, 2))
+    print("End assigned => Cards : loop = " .. point.toString(cards[i].currentLoop.topleft, 2) .. ", " .. point.toString(cards[i].currentLoop.topright, 2))
   end
 end
 
@@ -228,36 +190,24 @@ function addJunctions(currentLine, coordY, tracks)
     -- Find the first char representing the TOP LEFT of the loop
     junctionIndex = findNextSymbol(currentLine, index, #currentLine, {"%+"})
 
-    print(junctionIndex)
-
     if junctionIndex ~= nil then
       index = index + select(1, junctionIndex)
       junctionIndex = index - 2
-
       currentPoint = point.new{junctionIndex, coordY-1}
-
-      print(junctionIndex .. ", " .. coordY-1)
 
       -- Find the loop the junction belong to
       i = 1
       found = 0
       while i <= #tracks and found < 2 do
-        --print("DEBUG 1: " .. tracks[i].topleft.x .. ", " .. tracks[i].topleft.y)
-        --print("DEBUG 2: " .. tracks[i].topright.x .. ", " .. tracks[i].topright.y)
-        --print(isPointOnLoop(currentPoint , tracks[i]))
         if isPointOnLoop(currentPoint , tracks[i]) then
           found = found + 1
           -- Add the junction as part of the both loop it intersects.
           table.insert(tracks[i].junctions, currentPoint)
-          print("---------------------------")
-          --print("POINT :" .. point.toString)
         end
         i = i + 1
       end
     end
   until junctionIndex == nil or index >= #currentLine
-
-  print("EEEEEEEEND")
 end
 
 ------------------------------------------------------------------------
@@ -325,11 +275,23 @@ function swapCards(card1, card2)
   return card2.position.y <= card1.position.y or (card2.position.y == card1.position.y and card2.position.x <= card1.position.x)
 end
 
+function removeCrashingCards(cards, indexes)
+  local newCards = {}
+  for i = 1, #cards do
+    if not helper.contains(indexes, i) then
+      table.insert(newCards, cards[i])
+    end
+  end
+  return newCards
+end
+
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function detectCollision (cards)
-  local currentCards = cards
+function detectFirstCollision (cards, cardCrashedIndex)
+  local card1Index = nil
+  local card2Index = nil
+
   local crashPosition = nil
   local crash = false
 
@@ -338,30 +300,58 @@ function detectCollision (cards)
   repeat
     obsCardindex = obsCardindex + 1
     local i = 1
-    while i < #currentCards and not crash do
+    while i < #cards and not crash do
       if obsCardindex ~= i then
-        crash = point.equals(currentCards[i].position, currentCards[obsCardindex].position)
-        if crash then
+        crash = point.equals(cards[i].position, cards[obsCardindex].position)
+        if crash and not helper.contains(cardCrashedIndex, i) then
           -- Part 1 : Retrieve the crash position
-          crashPosition = currentCards[i].position
+          crashPosition = cards[i].position
 
-          -- Part 2 : Remove both cards from the lists
-          table.remove(currentCards, obsCardindex)
-          table.remove(currentCards, i)
+          -- Retrieve both cards indexes just in case.
+          card1Index = i
+          card2Index = obsCardindex
         end
       end
       i = i + 1
     end
-  until crash or obsCardindex >= #currentCards
+  until crash or obsCardindex >= #cards
 
-    -- Return the new card
-  return crash, crashPosition, currentCards
+    -- Return the new cards set
+  return crash, crashPosition, card1Index, card2Index
+end
+
+function detectAllCollision (cards, cardCrashedIndex)
+  local crashPosition = nil
+  local crash = false
+
+  -- Check if there is a collision now
+  obsCardindex = 0
+  repeat
+    obsCardindex = obsCardindex + 1
+    local i = 1
+    while i < #cards do
+      if obsCardindex ~= i then
+        crash = point.equals(cards[i].position, cards[obsCardindex].position)
+
+        if crash and not helper.contains(cardCrashedIndex, i) then
+          -- Part 2 : Retrieve both cards indexes
+          table.insert(cardCrashedIndex, i)
+          table.insert(cardCrashedIndex, obsCardindex)
+        end
+      end
+      i = i + 1
+    end
+  until crash or obsCardindex >= #cards
+
+    -- Return the new cards set
+  return crash, crashPosition, cardCrashedIndex
 end
 
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function PlayOneTick(cards, tracks)
+function PlayOneTick(cards, tracks, part)
+  local cardCrashedIndex = {}
 
   -- Apply a bubblesort to iterate on cards on the right way
   cards = helper.bubbleSortList(cards, swapCards)
@@ -377,8 +367,6 @@ function PlayOneTick(cards, tracks)
 
     -- Check, in the current loop, if we meet a junction or not
     if isCellJunction(cards[i].position, cards[i].currentLoop.junctions) then
-      --print("JUNCTIOOOONS")
-      --print(cards[i].nextTurn)
 
       -- Check where the card have to go based on his nextTurn and update his velocity
       if cards[i].nextTurn == 0 then
@@ -412,7 +400,6 @@ function PlayOneTick(cards, tracks)
 
     -- Check, in the current loop, if we meet a border edge
     elseif isCellBorderEdge(cards[i].position, cards[i].currentLoop) then
-      --print("BORDERRRRR")
 
       -- Change the velocity of the card
       if point.equals(cards[i].position, cards[i].currentLoop.topleft) then
@@ -427,11 +414,26 @@ function PlayOneTick(cards, tracks)
     end
 
     -- Check if there is a collision after moving the current card
-    crash, finalPosition, cards = detectCollision(cards)
-    print(#cards)
+    if part == 1 then
+      crash, finalPosition, index1, index2 = detectFirstCollision(cards, cardCrashedIndex)
+    elseif part == 2 then
+      crash, finalPosition, cardCrashedIndex = detectAllCollision(cards, cardCrashedIndex)
+    end
 
     i = i + 1
-  until i > #cards or crash
+  until i > #cards or (part == 2 and #cards <= 1) or (part == 1 and crash)
+
+  -- Part 2 : Remove both cards from the lists
+  if part == 2 then
+    print("REMOVE CRASHING CARDS")
+    cards = removeCrashingCards(cards, cardCrashedIndex)
+  end
+  print(#cards)
+
+  -- Retrieve the position of the last position
+  if #cards <= 1 then
+    finalPosition = cards[1].position
+  end
 
   return cards, finalPosition, crash
 end
@@ -449,7 +451,7 @@ function findFirstCrash (tracks, cards)
     print("*****TICK " .. tick)
 
     -- Play one tick
-    cards, finalPosition, crash = PlayOneTick(cards, tracks)
+    cards, finalPosition, crash = PlayOneTick(cards, tracks, 1)
 
     -- Update the tick
     tick = tick + 1
@@ -463,7 +465,6 @@ function findFirstCrash (tracks, cards)
   return finalPosition
 end
 
-
 ------------------------------------------------------------------------
 -- partOne - function used for the part 1
 -- Params:
@@ -471,8 +472,78 @@ end
 -- Return
 --    the final result for the part 1.
 ------------------------------------------------------------------------
-local function partOne (inputFile)
+local function partOne (tracks, cards)
 
+  -- Algorithm that will simulate the tick and find the first crash
+  local collisionPosition = findFirstCrash(tracks, cards)
+
+  if collisionPosition ~= nil then
+    print("================================================================")
+    print("FINAL PART ONE : (" .. collisionPosition.x .. ", " .. collisionPosition.y .. ")")
+    print("================================================================")
+  end
+
+  return 0;
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function findLastCard (tracks, cards)
+  local finalPosition = nil
+  local crash = false
+  local tick = 1
+
+  -- Keep going until a crash or reach threshold
+  while #cards > 1 and tick <= 100000 do
+    print("*****TICK " .. tick)
+
+    -- Play one tick
+    cards, finalPosition, crash = PlayOneTick(cards, tracks, 2)
+
+    -- Update the tick
+    tick = tick + 1
+  end
+
+  for i = 1, #cards do
+    -- Apply the velocity and update the current position
+    print("Card " .. i .. " Position = " .. point.toString(cards[i].position) .. " Velocity = " .. point.toString(cards[i].velocity))
+  end
+
+  return finalPosition
+end
+
+------------------------------------------------------------------------
+-- partTwo - function used for the part 2
+-- Params:
+--    - inputFile : file handler, input handle.
+-- Return
+--    the final result for the part 2.
+------------------------------------------------------------------------
+local function partTwo (tracks, cards)
+
+  -- Algorithm that will simulate the tick and find the first crash
+  local lastPosition = findLastCard(tracks, cards)
+
+  local finalPosition = nil
+  local crash = false
+  local tick = 1
+  local cards = nil
+
+  if lastPosition ~= nil then
+    print("================================================================")
+    print("FINAL PART TWO : (" .. lastPosition.x .. ", " .. lastPosition.y .. ")")
+    print("================================================================")
+  end
+
+  return 0
+end
+
+------------------------------------------------------------------------
+-- Pre-processing function
+-- Useful to create data and structs we will work with.
+------------------------------------------------------------------------
+function preProcessing (inputFile)
   local fileLines = helper.saveLinesToArray(inputFile);
 
   local tracks = {}
@@ -510,30 +581,7 @@ local function partOne (inputFile)
   print("NUMBER OF JUNCTIONS : " .. NBJUNCTIONS)
   --]]
 
-  -- Algorithm that will simulate the tick and find the first crash
-  local collisionPosition = findFirstCrash(tracks, cards)
-
-  if collisionPosition ~= nil then
-    print("================================================================")
-    print("FINAL : (" .. collisionPosition.x .. ", " .. collisionPosition.y .. ")")
-    print("================================================================")
-  end
-
-  return 0;
-end
-
-------------------------------------------------------------------------
--- partTwo - function used for the part 2
--- Params:
---    - inputFile : file handler, input handle.
--- Return
---    the final result for the part 2.
-------------------------------------------------------------------------
-local function partTwo (inputFile)
-
-
-
-  return 0;
+  return tracks, cards
 end
 
 
@@ -544,14 +592,16 @@ function day13Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
+  tracks, cards = preProcessing(inputFile)
+
   -- Launch and print the final result
-  print("Result part one :", partOne(inputFile));
+  print("Result part one :", partOne(tracks, cards));
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
 
   -- Launch and print the final result
-  print("Result part two :", partTwo(inputFile));
+  print("Result part two :", partTwo(tracks, cards));
 
   -- Finally close the file
   inputFile:close();
