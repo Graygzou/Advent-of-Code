@@ -5,7 +5,7 @@
 --# Template used for every main script for the day X of the AoC  #
 --#################################################################
 -- Note:
--- To use it Press Ctrl + F and replace "DayX" by "Day" and the associated number.
+-- To use it Press Ctrl + F and replace "day15" by "Day" and the associated number.
 --
 
 local P = {} -- packages
@@ -15,7 +15,7 @@ local P = {} -- packages
 --#################################################################
 
 if _REQUIREDNAME == nil then
-  dayX = P
+  day15 = P
 else
   _G[_REQUIREDNAME] = P
 end
@@ -56,7 +56,7 @@ end
 --#################################################################
 -- Main - Main function
 --#################################################################
-function dayXMain (filename)
+function day15Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
@@ -77,8 +77,8 @@ end
 -- Package end
 --#################################################################
 
-dayX = {
-  dayXMain = dayXMain,
+day15 = {
+  day15Main = day15Main,
 }
 
-return dayX
+return day15
