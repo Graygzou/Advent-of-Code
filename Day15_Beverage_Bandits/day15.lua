@@ -31,9 +31,17 @@ end
 -- Return
 --    the final result for the part 1.
 ------------------------------------------------------------------------
-local function partOne (inputFile)
+local function partOne (elfs, goblins)
 
-  -- TODO
+
+  -- Game loop
+  done = false
+  nbTurn = 0
+  while not done and nbTurn < 100000000 do
+
+
+
+  end
 
   return 0;
 end
@@ -52,6 +60,24 @@ local function partTwo (inputFile)
   return 0;
 end
 
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function preProcessing(inputFile)
+  local fileLines = helper.saveLinesToArray(inputFile);
+
+  local elfs = {}
+  local goblins = {}
+
+  -- For each lines in the file
+  for i = 1, #fileLines do
+    
+  end
+
+
+  return elfs, goblins
+end
+
 
 --#################################################################
 -- Main - Main function
@@ -60,14 +86,27 @@ function day15Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
+  elfs, goblins = preProcessing(inputFile)
+
+  -- DEBUG HERE
+  -- Elfs list should be order in the reading order !
+  for i = 1,#elfs do
+    print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.tostring(elfs[i].position))
+  end
+
+  -- goblins list should be order in the reading order !
+  for i = 1,#goblins do
+    print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.tostring(goblins[i].position))
+  end
+
   -- Launch and print the final result
-  print("Result part one :", partOne(inputFile));
+  print("Result part one :", partOne(elfs, goblins));
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
 
   -- Launch and print the final result
-  print("Result part two :", partTwo(inputFile));
+  print("Result part two :", partTwo(elfs, goblins));
 
   -- Finally close the file
   inputFile:close();

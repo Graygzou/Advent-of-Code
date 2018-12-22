@@ -31,7 +31,9 @@ end
 ------------------------------------------------------------------------
 -- Tests
 ------------------------------------------------------------------------
-print("Tests computePowerCell function :")
+print("|-------------------------------------------|")
+print("| Tests computePowerCell function :         |")
+print("|-------------------------------------------|")
 print(computePowerCell(3, 5, 8) == 4)
 print(computePowerCell(122, 79, 57) == -5)
 print(computePowerCell(217, 196, 39) == 0)
@@ -73,7 +75,6 @@ end
 ------------------------------------------------------------------------
 -- Tests
 ------------------------------------------------------------------------
-print("Tests computeTotalPowerCell function :")
 -- Init the lookup table
 lookupTable = {}
 for j = 1,303 do
@@ -82,6 +83,9 @@ for j = 1,303 do
     lookupTable[j][i] = ""
   end
 end
+print("|-------------------------------------------|")
+print("| Tests computeTotalPowerCell function :    |")
+print("|-------------------------------------------|")
 print(computeTotalPowerCell(lookupTable, 3, 3, 33, 45, 18) == 29)
 print(computeTotalPowerCell(lookupTable, 3, 3, 21, 61, 42) == 30)
 

@@ -202,7 +202,7 @@ function StudyGuardActivities2(activities)
     currentNumberIndex = currentNumberIndex + 1;
   end
 
-  print("FINAL INT = " .. finalInteger);
+  --print("FINAL INT = " .. finalInteger);
 
   local maxValueSoFar = 0
   for i=1,#minutes do
@@ -218,14 +218,13 @@ end
 -----------------------------------------
 -- Tests
 -----------------------------------------
----[[
-print("TEST 1");
+print("|-------------------------------------------|")
+print("| Tests StudyGuardActivities2 function :    |")
+print("|-------------------------------------------|")
 print(select(1, StudyGuardActivities2("00:00,00:05,00:25,00:30,00:55,00:05,00:24,00:29")) == 50);
 print(select(2, StudyGuardActivities2("00:00,00:05,00:25,00:30,00:55,00:05,00:24,00:29")) == 24);
-print("TEST 2");
 print(select(1, StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 30);
 print(select(2, StudyGuardActivities2("23:58,00:40,00:50,00:02,00:36,00:46,00:03,00:45,00:55")) == 45);
----]]
 
 --####################################################################
 -- BuildStringHeader - Build the header string to be print at the end

@@ -130,13 +130,47 @@ end
 ---------------------------------------------
 -- Tests
 ---------------------------------------------
-print("---------------------------------------------")
-print("Tests findAndReplaceString function : ")
-print("---------------------------------------------")
+print("|-------------------------------------------|")
+print("| Tests findAndReplaceString function :     |")
+print("|-------------------------------------------|")
 print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....!###..!###")
 print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
 print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
 print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
+
+
+
+------------------------------------------------------------------------
+-- find the first occuring symbols in a string among a list of symbols
+-----------------------------------------------------------------------
+function findNextSymbolInString(string, startingIndex, stringLength, symbols)
+  local finalRes = nil
+  temp = nil
+  for i = 1, #symbols do
+    temp = string:sub(startingIndex, stringLength):find(symbols[i])
+    if temp ~= nil then
+      if finalRes ~= nil then
+        finalRes = math.min(finalRes, temp)
+      else
+        finalRes = temp
+      end
+    end
+  end
+
+  return finalRes
+end
+---------------------------------------------
+-- Tests
+---------------------------------------------
+print("|-------------------------------------------|")
+print("| Tests findNextSymbolInString function :   |")
+print("|-------------------------------------------|")
+print(findNextSymbolInString("#######", 0, 7, {"G", "E"}) == nil)
+print(findNextSymbolInString("#.#.#G#", 0, 7, {"G", "E"}) == 6)
+print(findNextSymbolInString("#...EG#", 0, 7, {"G", "E"}) == 5)
+print(findNextSymbolInString("#...GG#", 0, 7, {"G", "E"}) == 5)
+print(findNextSymbolInString("#...GE#", 0, 7, {"G", "E"}) == 5)
+print(findNextSymbolInString("#...FE#", 0, 7, {"G", "E"}) == 6)
 
 -----------------------------------------------------
 -- Helpers function to execute a bubble sort
@@ -178,9 +212,9 @@ end
 ---------------------------------------------
 -- Tests
 ---------------------------------------------
-print("---------------------------------------------")
-print("Tests contains function : ")
-print("---------------------------------------------")
+print("|-------------------------------------------|")
+print("|Tests contains function :                  |")
+print("|-------------------------------------------|")
 print(contains({}, 2) == false)
 print(contains({8,4,6,2}, 3) == false)
 print(contains({8,4,6,2}, 4) == true)
@@ -200,6 +234,7 @@ helper = {
   findAndReplaceString = findAndReplaceString,
   bubbleSortList = bubbleSortList,
   contains = contains,
+  findNextSymbolInString = findNextSymbolInString,
 }
 
 return helper
