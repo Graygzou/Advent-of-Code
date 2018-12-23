@@ -175,12 +175,13 @@ print(findNextSymbolInString("#...FE#", 0, 7, {"G", "E"}) == 6)
 -----------------------------------------------------
 -- Helpers function to execute a bubble sort
 -----------------------------------------------------
-function bubbleSortList (list, swapFunction)
+function bubbleSortList (list, swapFunction, ...)
   local resStruct = list
+  local arg = {...}
 
   for i=#list,1,-1 do
     for j=1,#list-1 do
-      if swapFunction(list[j], list[j+1]) then
+      if swapFunction(list[j], list[j+1], arg) then
         local temp = resStruct[j];
         resStruct[j] = resStruct[j+1];
         resStruct[j+1] = temp;

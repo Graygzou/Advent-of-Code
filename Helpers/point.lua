@@ -70,8 +70,7 @@ function equals(point1, point2, dimension)
     dimension = 2
   end
   local equals = true
-  equals = equals and point1.x == point2.x
-  equals = equals and point1.y == point2.y
+  equals = equals and point1.x == point2.x and point1.y == point2.y
   if dimension == 3 then
     equals = equals and point1.z == point2.z
   end
@@ -119,6 +118,25 @@ function add(point1, point2, dimension)
   return newPoint
 end
 
+-----------------------------------------------------
+-- Helpers function to execute a bubble sort
+-----------------------------------------------------
+function bubbleSortPoints (points, swapFunction, ...)
+  local resStruct = points
+  local arg = {...}
+
+  for i=#points,1,-1 do
+    for j=1,#points-1 do
+      if swapFunction(points[j].position, points[j+1].position, arg[1]) then
+        local temp = resStruct[j];
+        resStruct[j] = resStruct[j+1];
+        resStruct[j+1] = temp;
+      end
+    end -- end for 2
+  end -- end for 1
+  return resStruct;
+end
+
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
@@ -144,6 +162,7 @@ end
 point = {
   new = new,
   add = add,
+  bubbleSortPoints = bubbleSortPoints,
   equals = equals,
   toString = toString,
 }
