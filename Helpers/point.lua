@@ -41,29 +41,6 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function equalsList(list1, list2)
-  if #list1 ~= #list2 then return end
-  local equals = true
-  for i = 1, #list2 do
-    equals = equals and list1[i] == list2[i]
-  end
-  return equals
-end
-------------------------------------------------------------------------
--- Tests
-------------------------------------------------------------------------
-print("|-------------------------------------------|")
-print("| Tests equals function for point :         |")
-print("|-------------------------------------------|")
-print(equalsList({4,8}, {4,8}) == true)
-print(equalsList({4,8}, {8,4}) == false)
-print(equalsList({0,9}, {0,8}) == false)
-print(equalsList({9,0}, {9,0}) == true)
-print(equalsList({6,9}, {2,9}) == false)
-
-------------------------------------------------------------------------
---
-------------------------------------------------------------------------
 function equals(point1, point2, dimension)
   if #point1 ~= #point2 then return end
   if dimension == nil then

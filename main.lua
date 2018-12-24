@@ -10,6 +10,7 @@
 -----------------------------------------------------
 package.path = package.path .. ';Helpers/?.lua;'
 require "helper"
+require "list"
 require "stack"
 require "point"
 
