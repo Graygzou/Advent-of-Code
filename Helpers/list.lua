@@ -55,7 +55,7 @@ function bubbleSortList (list, swapFunction, ...)
 
   for i=#list,1,-1 do
     for j=1,#list-1 do
-      if swapFunction(list[j], list[j+1], arg) then
+      if swapFunction(resStruct[j], resStruct[j+1], arg[1]) then
         local temp = resStruct[j];
         resStruct[j] = resStruct[j+1];
         resStruct[j+1] = temp;

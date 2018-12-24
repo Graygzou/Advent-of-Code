@@ -108,6 +108,16 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
+function isNotPositionsInRO (unit1, unit2)
+  position1 = unit1.position
+  position2 = unit2.position
+  return not ((position1.y < position2.y) or (position1.y == position2.y and position1.x < position2.x))
+end
+
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
 function findNextPlayingUnit (units)
   local nextUnit = nil
   local finalIndex = nil
@@ -166,7 +176,9 @@ function mergeUnitLists (nbUnits, ...)
     -- Find the next playing unit among all separate lists of units
     competingUnit = {}
     for i = 1, nbTeam do
-      --print("ICI", i, arg[i][teamIndexes[i]])
+      if arg[i][teamIndexes[i]] ~= nil then
+        print("ICI", i, point.toString(arg[i][teamIndexes[i]].position))
+      end
       if arg[i][teamIndexes[i]] == nil then
         table.insert(competingUnit, {})
       else
@@ -175,13 +187,13 @@ function mergeUnitLists (nbUnits, ...)
     end
 
     for i = 1,#competingUnit do
-      --print(competingUnit[i])
+      print(competingUnit[i].position)
     end
 
     nextPlayingUnit, UnitTeamIndex = findNextPlayingUnit(competingUnit)
 
     --print("FOUND UNIT Type = " .. nextPlayingUnit.type .. ", Health = " .. nextPlayingUnit.health .. ", Attack =" .. nextPlayingUnit.attack .. ", Position = " .. point.toString(nextPlayingUnit.position))
-    --print("INDEX", UnitTeamIndex)
+    print("INDEX", UnitTeamIndex)
 
     -- Update and Insert the unit
     nextPlayingUnit.unitList = #unitList + 1
@@ -650,6 +662,10 @@ local function partOne (nbUnits, elfs, goblins, map)
 
     -- Sort each unit in their respective list
     -- Maybe later for optimization purpose.
+    -- NOP NOW !
+    print("BUBBLE SORT TIME !!!!")
+    elfs = list.bubbleSortList(elfs, isNotPositionsInRO)
+    goblins = list.bubbleSortList(goblins, isNotPositionsInRO)
 
     for i = 1,#elfs do
       print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
