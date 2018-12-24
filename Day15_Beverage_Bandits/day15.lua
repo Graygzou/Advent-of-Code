@@ -405,7 +405,7 @@ function findNextPositionToReach(rootUnit, targets, map)
   return chosenPosition
 end
 
-function canAttack(unit, targets)
+function isAttackPossible(unit, targets)
   local canAttack = false
   local enemyList = {}
   -- Get adjacent squares to study them
@@ -491,7 +491,7 @@ local function partOne (nbUnits, elfs, goblins, map)
         local inRangeCells = {}
 
         -- Tag (Add) all adjacent cells (up, down, left, right) that are not wall or unit.
-        local canAttack, closeEnemies = canAttack(currentUnit, targets)
+        local canAttack, closeEnemies = isAttackPossible(currentUnit, targets)
         if canAttack then
           -- ATTACK
           print("** ATTACK: The " .. currentUnit.type .. " decided to attack !")
@@ -568,6 +568,69 @@ local function partOne (nbUnits, elfs, goblins, map)
 
             -- Update the map
             map[currentUnit.position.y+1][currentUnit.position.x+1] = currentUnit.type
+
+            -- Check if we can attack now
+            local canAttack, closeEnemies = isAttackPossible(currentUnit, targets)
+            if canAttack then
+              -- ATTACK
+              print("** ATTACK: The " .. currentUnit.type .. " decided to attack !")
+
+              -- Found the next victim we'll be attacking
+              if #closeEnemies > 1 then
+                victim = foundNextVictim(closeEnemies)
+              else
+                victim = closeEnemies[1]
+              end
+
+              print("** ATTACK: The " .. currentUnit.type .. " attack the unit " .. victim.type .. " at position = " .. point.toString(victim.position) .. " !")
+              print("** ATTACK: The victim " .. victim.type .. " health goes from " .. victim.health .. " to " .. (victim.health-currentUnit.attack) .. " !")
+
+              -- Attack him
+              victim.health = victim.health - currentUnit.attack
+
+
+              -- Check if the unit needs to be removed (health <= 0)
+              if victim.health <= 0 then
+              --if victim.health < 200 then
+                print("** DEATH: The " .. currentUnit.type .. " killed the unit " .. victim.type .. " at position = " .. point.toString(victim.position) .. " !")
+                -- Remove it from the unitList (to continue the game)
+                nbUnits = nbUnits - 1
+                table.remove(unitList, victim.unitList)
+                -- Update all the unitList index of the following units
+                for unitIndex = 1,#unitList do
+                  if unitList[unitIndex].unitList > victim.unitList then
+                    unitList[unitIndex].unitList = unitList[unitIndex].unitList - 1
+                  end
+                end
+
+
+                for unitIndex = 1,#unitList do
+                  print("The " .. unitList[unitIndex].type .. ", ListIndex = " .. unitList[unitIndex].listIndex .. ", UnitListIndex = " .. unitList[unitIndex].unitList .. " Health = " .. unitList[unitIndex].health .. ", Attack =" .. unitList[unitIndex].attack .. ", Position = " .. point.toString(unitList[unitIndex].position))
+                end
+
+                -- Remove it from his own list
+                if currentUnit.type == "E" then
+                  table.remove(goblins, victim.listIndex)
+                  done = #goblins <= 0
+                  for i = 1,#goblins do
+                    print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.toString(goblins[i].position))
+                  end
+                elseif currentUnit.type == "G" then
+                  table.remove(elfs, victim.listIndex)
+                  done = #elfs <= 0
+                  for i = 1,#elfs do
+                    print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
+                  end
+                end
+
+                map[victim.position.y+1][victim.position.x+1] = "."
+              end
+
+              if done then
+                break
+              end
+            end
+
           else
             print("** END TURN: The " .. currentUnit.type .. " can't find a reachable target. He decided to end his turn !")
             -- END HIS TURN
