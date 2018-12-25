@@ -105,15 +105,22 @@ end
 --print(point.equals(findfirstPosInRO({x=1, y=3},{x=2, y=2}, 0, 0), {x=, y=}))
 
 
-------------------------------------------------------------------------
---
-------------------------------------------------------------------------
-function isNotPositionsInRO (unit1, unit2)
+----------------------------------------------------------------------------------------------
+-- Return true if the unit2 should be before the unit1 (not in reading order), false otherwise.
+----------------------------------------------------------------------------------------------
+function isNotUnitsInRO (unit1, unit2)
   position1 = unit1.position
   position2 = unit2.position
   return not ((position1.y < position2.y) or (position1.y == position2.y and position1.x < position2.x))
 end
 
+------------------------------------------------------------------------
+-- Return true if the position of the unit2 should be before the position
+-- of the unit1 (not in reading order), false otherwise.
+------------------------------------------------------------------------
+function isNotPositionsInRO (position1, position2)
+  return not ((position1.y < position2.y) or (position1.y == position2.y and position1.x < position2.x))
+end
 
 ------------------------------------------------------------------------
 --
@@ -264,7 +271,7 @@ function findClosestReachablePos(rootUnit, targetPositions, map)
   local nextStepSquare = nil
 
   for i = 1,#targetPositions do
-    currentLength = 0
+    local currentLength = 1
     print("NEXT TARGET ADJACENT = ", point.toString(targetPositions[i].position))
 
     -- Settings
@@ -289,34 +296,33 @@ function findClosestReachablePos(rootUnit, targetPositions, map)
 
       -- Add all the points to the existing queue.
       for j = 1,#possiblePoints do
-        --print("HUMM", point.toString(possiblePoints[j].position))
+        print("HUMM", point.toString(possiblePoints[j].position))
         if not list.contains(visitedSquares, possiblePoints[j].position, point.equals) then
-          --print("ADD")
+          print("ADD")
           -- Special case when we insert the first point (that one of them will be our solution !)
-          --print(point.toString(possiblePoints[j].position))
+          print(point.toString(possiblePoints[j].position))
           stack.pushright(possibleSquares, possiblePoints[j])
           table.insert(visitedSquares, possiblePoints[j].position)
         end
       end
 
       -- Debug
-      --stack.printstack(possibleSquares)
+      stack.printstack(possibleSquares)
 
       -- Take the next point in the stack (nil if empty)
       nextPoint = stack.popright(possibleSquares)
       if nextPoint ~= nil then
-        --print("POINT = " .. point.toString(nextPoint.position))
-        --print("PARENT = " .. point.toString(nextPoint.parentPos.position))
+        print("POINT = " .. point.toString(nextPoint.position))
+        print("PARENT = " .. point.toString(nextPoint.parentPos.position))
       end
 
-      --io.write("Pressed any keys to go forward : ")
-      --io.flush()
-      --io.read()
+      io.write("Pressed any keys to go forward : ")
+      io.flush()
+      io.read()
 
-    until (nextPoint == nil) or (nextPoint.position == nil) or totalLength > 50 or (nextPoint.position ~= nil and point.equals(nextPoint.position, endingPoint))
+    until (nextPoint == nil) or (nextPoint.position == nil) or (nextPoint.position ~= nil and point.equals(nextPoint.position, endingPoint))
 
-    --print(stack.getSize(possibleSquares) <= 0)
-    --print((nextPoint ~= nil and point.equals(nextPoint, endingPoint)))
+    print((nextPoint ~= nil and point.equals(nextPoint, endingPoint)))
 
     finalString = ""
     for yPos = 1,#map do
@@ -349,7 +355,7 @@ function findClosestReachablePos(rootUnit, targetPositions, map)
 
       if finalTarget == nil or (currentLength == finalTarget.length and point.equals(targetPositions[i].position, findfirstPosInRO(targetPositions[i].position, finalTarget.target))) or currentLength < finalTarget.length then
         -- Store the final select target (first field), the step he has to take in order to reach it (second field) and the total length of the path
-        finalTarget = { target=targetPositions[i].position, nextStep=tempPos.position, length=currentLength }
+        finalTarget = { target=targetPositions[i].position, nextStep=rootUnit.position, length=currentLength }
       end
     else
       -- The possible point we tried is not reachable
@@ -375,17 +381,31 @@ function findNextPositionToReach(rootUnit, targets, map)
   local finalNextPosition = nil
 
   for i = 1,#targets do
-    local currentTargetPosition = targets[i]
-
-    print("NEXT " .. i .. "eme TARGET = " .. point.toString(currentTargetPosition.position))
+    print("NEXT " .. i .. "eme TARGET = " .. point.toString(targets[i].position))
 
     -- Study if the target can be in range
-    local isInRange, availableSpots = isInRange(currentTargetPosition)
-    if isInRange then
+    local inRange, availableSpots = isInRange(targets[i])
+    if inRange then
 
-      -- if it is, find the closest reachable position (top, bottom, right, left)
-      -- This step will also compute the length to that closest reachable position
-      closestReachableSquare = findClosestReachablePos(rootUnit, availableSpots, map)
+      -- if it is, find the closest reachable position for each adjacent square (top, bottom, right, left) and take the lowest one.
+      -- This step will also compute the length of each closest reachable position
+      local _, adjacentSquares = isInRange(rootUnit)
+
+      local closestReachableSquare = nil
+      for indexNextSquare = #adjacentSquares, 1, -1 do
+        -- Compute the length of the path (with the nextStep and target position)
+        local tempClosestReachableSquare = findClosestReachablePos(adjacentSquares[indexNextSquare], availableSpots, map)
+
+        -- Check if this current adjacent square deserve to be the next step.
+        if tempClosestReachableSquare ~= nil then
+          print("TEMP ADJACENT CHOSEN : LENGTH = " .. tempClosestReachableSquare.length .. " POSITION = " .. point.toString(tempClosestReachableSquare.nextStep))
+          if (closestReachableSquare == nil or
+              tempClosestReachableSquare.length < closestReachableSquare.length or
+              tempClosestReachableSquare.length == closestReachableSquare.length and isNotPositionsInRO(closestReachableSquare.nextStep, tempClosestReachableSquare.nextStep)) then
+            closestReachableSquare = tempClosestReachableSquare
+          end
+        end
+      end
 
       --print(closestReachablePos)
       if closestReachableSquare ~= nil then
@@ -396,15 +416,17 @@ function findNextPositionToReach(rootUnit, targets, map)
         print("NOT REACHABLE SQUARE !")
       end
 
-      print("------------------------------------------------")
-      print("TEMP lengthShorestPath", chosenPosition.length)
-      print("TEMP chosenposition", point.toString(chosenPosition.target))
+      if chosenPosition ~= nil then
+        print("------------------------------------------------")
+        print("TEMP lengthShorestPath", chosenPosition.length)
+        print("TEMP chosenposition", point.toString(chosenPosition.target))
+      end
 
     else
       print("NOT REACHABLE UNIT, MOVE TO THE NEXT ONE !")
     end
 
-    print("Current " .. i .. "eme TARGET = " .. point.toString(currentTargetPosition.position))
+    print("Current " .. i .. "eme TARGET = " .. point.toString(targets[i].position))
 
     --io.write("Pressed any keys to go to the next target : ")
     --io.flush()
@@ -664,8 +686,8 @@ local function partOne (nbUnits, elfs, goblins, map)
     -- Maybe later for optimization purpose.
     -- NOP NOW !
     print("BUBBLE SORT TIME !!!!")
-    elfs = list.bubbleSortList(elfs, isNotPositionsInRO)
-    goblins = list.bubbleSortList(goblins, isNotPositionsInRO)
+    elfs = list.bubbleSortList(elfs, isNotUnitsInRO)
+    goblins = list.bubbleSortList(goblins, isNotUnitsInRO)
 
     for i = 1,#elfs do
       print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
