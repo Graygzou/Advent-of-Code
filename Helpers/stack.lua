@@ -60,7 +60,7 @@ end
 function printstack (stack)
   for k, v in pairs(stack) do
     if k ~= "first" and k ~= "last" then
-      print(k, " => ", v.position.x,v.position.y )
+      print(k, " => ", v.pts.position.x, v.pts.position.y )
     end
   end
 end
