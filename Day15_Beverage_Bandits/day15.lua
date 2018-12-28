@@ -533,7 +533,7 @@ function attackUnit(attackingUnit, closeEnemies, nbUnits, unitList, goblins, elf
     map[victim.position.y+1][victim.position.x+1] = "."
   end
 
-  return done
+  return done, nbUnits, unitList, goblins, elfs, map
 end
 
 ------------------------------------------------------------------------
@@ -555,15 +555,23 @@ local function partOne (nbUnits, elfs, goblins, map)
     -- Merge all the unit list into one big ordered by playing turn !
     unitList = mergeUnitLists(nbUnits, elfs, goblins)
 
+    -- Reset all actions points of all units
+    for unitIndex = 1,#unitList do
+      unitList[unitIndex].movementPoint = 1
+      unitList[unitIndex].attackPoint = 1
+    end
+
     for unitIndex = 1,#unitList do
       print("The " .. unitList[unitIndex].type .. ", ListIndex = " .. unitList[unitIndex].listIndex .. ", UnitListIndex = " .. unitList[unitIndex].unitList .. " Health = " .. unitList[unitIndex].health .. ", Attack =" .. unitList[unitIndex].attack .. ", Position = " .. point.toString(unitList[unitIndex].position))
     end
 
     -- PLay one turn for each unit
+    -- TODO REMOVE THAT AND MAKE A LIST.
     for unitIndex = 1,#unitList do
       -- Retrieve the current unit
       currentUnit = unitList[unitIndex]
 
+      print(unitIndex)
       if currentUnit ~= nil then
         print("** START TURN: The " .. currentUnit.type .. ", Health = " .. currentUnit.health .. ", Attack =" .. currentUnit.attack .. ", Position = " .. point.toString(currentUnit.position))
 
@@ -588,10 +596,10 @@ local function partOne (nbUnits, elfs, goblins, map)
           -- FIRST: TRY TO ATTACK
           -- Tag (Add) all adjacent cells (up, down, left, right) that are not wall or unit.
           local canAttack, closeEnemies = isAttackPossible(currentUnit, targets)
-          if canAttack then
+          if canAttack and currentUnit.attackPoint >= 0 then
             -- ATTACK
             print("** ATTACK: The " .. currentUnit.type .. " decided to attack !")
-            done = attackUnit(currentUnit, closeEnemies)
+            done, nbUnits, unitList, goblins, elfs, map = attackUnit(currentUnit, closeEnemies, nbUnits, unitList, goblins, elfs, map)
             if done then
               break
             end
@@ -604,7 +612,7 @@ local function partOne (nbUnits, elfs, goblins, map)
             -----------------------------
             -- SECONDE: TRY TO MOVE
             local nextStep = findNextPositionToReach(currentUnit, targets, map)
-            if nextStep ~= nil then
+            if nextStep ~= nil and currentUnit.movementPoint > 0 then
               print("** MOVE: The " .. currentUnit.type .. " choose square " .. point.toString(nextStep.position) .. " as target !")
 
               -- Update the map
@@ -622,7 +630,7 @@ local function partOne (nbUnits, elfs, goblins, map)
               endTurn = true
             end
           end
-        until not endTurn == true or currentUnit.movementPoint <= 0 or currentUnit.attackPoint <= 0
+        until endTurn or (currentUnit.movementPoint <= 0 and currentUnit.attackPoint <= 0)
 
         print("** END TURN: The " .. currentUnit.type .. ", Health = " .. currentUnit.health .. ", Attack =" .. currentUnit.attack .. ", Position = " .. point.toString(currentUnit.position))
 
@@ -654,6 +662,10 @@ local function partOne (nbUnits, elfs, goblins, map)
     print(mapToString(map))
 
     print("@@@@@@@@@@@ END TURN " .. nbTurn .. " ! @@@@@@@@@@@")
+
+    for unitIndex = 1,#unitList do
+      print("The " .. unitList[unitIndex].type .. ", ListIndex = " .. unitList[unitIndex].listIndex .. ", UnitListIndex = " .. unitList[unitIndex].unitList .. " Health = " .. unitList[unitIndex].health .. ", Attack =" .. unitList[unitIndex].attack .. ", Position = " .. point.toString(unitList[unitIndex].position))
+    end
 
     io.write("Pressed any keys to play one more turn : ")
     io.flush()
