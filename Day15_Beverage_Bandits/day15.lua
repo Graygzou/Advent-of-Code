@@ -134,8 +134,6 @@ function findNextPlayingUnit (units)
   local finalIndex = nil
 
   for i=1,#units do
-    --print(point.toString(nextUnit.position))
-    --print(point.toString(units[i].position))
     if units[i] ~= nil and units[i].position ~= nil then
       if nextUnit == nil then
           nextUnit = units[i]
@@ -149,6 +147,8 @@ function findNextPlayingUnit (units)
       end
     end
   end
+
+  print(point.toString(nextUnit.position))
 
   return nextUnit, finalIndex
 end
@@ -608,7 +608,7 @@ local function partOne (nbUnits, elfs, goblins, map)
 
     -- PLay one turn for each unit
     local currentUnit = firstUnit
-    while currentUnit do
+    while currentUnit and not done do
 
       -- Retrieve all the info of the current unit
       currentUnitValues = currentUnit.value
@@ -762,21 +762,22 @@ function preProcessing(inputFile)
 
   -- For each lines in the file
   for i = 1, #fileLines do
+    local temp = 0
     local nextXPos = 0
     local index = 1
     local previousXPos = 0
     local currentLine = fileLines[i]
     repeat
+      print(index)
       nextXPos = helper.findNextSymbolInString(currentLine, index, #currentLine, {"G", "E"})
-
       if nextXPos ~= nil then
-        nextXPos = nextXPos + index - 1
-        --print(currentLine:sub(nextXPos, nextXPos))
+        temp = temp + nextXPos
+        print(currentLine:sub(temp, temp))
 
         -- Create the unit with all the parameters
         local newUnit = {
-          type=currentLine:sub(nextXPos, nextXPos),
-          position=point.new{nextXPos-1, i-1},
+          type=currentLine:sub(temp, temp),
+          position=point.new{temp-1, i-1},
           attack=3,
           health=200,
           movementPoint=1,
@@ -785,17 +786,24 @@ function preProcessing(inputFile)
 
         -- Add it to the right team
         if newUnit.type == "G" then
+          print("GOLBINS", "ligne", i, index)
           table.insert(goblins, newUnit)
         elseif newUnit.type == "E" then
+          print("ELFS", "ligne", i, index)
           table.insert(elfs, newUnit)
         else
           print("Unknown unit...")
         end
         nbUnits = nbUnits + 1
 
+        print(nextXPos)
+
         index = index + nextXPos
       end
+      print("INDEX", index)
+      print("LIGNE LENGTH", #currentLine)
     until nextXPos == nil or index >= #currentLine
+    print("EXIT")
   end
   return nbUnits, elfs, goblins, map
 end
