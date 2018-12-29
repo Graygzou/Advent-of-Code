@@ -556,15 +556,19 @@ function attackUnit(attackingUnit, attackingUnitValues, closeEnemies, nbUnits, g
 
     -- Remove it from his own list (for the next turn)
     if attackingUnitValues.type == "E" then
+      print("INDEXXXXXXXXXXXXXXXXXXX",victim.listIndex)
       table.remove(goblins, victim.listIndex)
       done = #goblins <= 0
+      -- Shift all the listIndex of all units left
       for i = 1,#goblins do
+        goblins[i].listIndex = goblins[i].listIndex - 1
         print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.toString(goblins[i].position))
       end
     elseif attackingUnitValues.type == "G" then
       table.remove(elfs, victim.listIndex)
       done = #elfs <= 0
       for i = 1,#elfs do
+        elfs[i].listIndex = elfs[i].listIndex - 1
         print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
       end
     end
@@ -584,17 +588,19 @@ end
 --    the final result for the part 1.
 ------------------------------------------------------------------------
 local function partOne (nbUnits, elfs, goblins, map)
+  local finalScore = 0
+  local firstUnit = nil
 
   -- Game Loop
   done = false
   nbTurn = 1
-  while not done and nbTurn <= 47 do
+  while not done and nbTurn <= 100 do
 
     print("@@@@@@@@@@@ START TURN " .. nbTurn .. " ! @@@@@@@@@@@")
 
     -- Merge all the unit list into one big ordered by playing turn !
     -- also reset all the actions points
-    local firstUnit = mergeUnitLists(nbUnits, elfs, goblins)
+    firstUnit = mergeUnitLists(nbUnits, elfs, goblins)
 
     local l = firstUnit
     while l do
@@ -616,9 +622,9 @@ local function partOne (nbUnits, elfs, goblins, map)
       if currentUnitValues ~= nil then
         print("** START TURN: The " .. currentUnitValues.type .. ", Health = " .. currentUnitValues.health .. ", Attack =" .. currentUnitValues.attack .. ", Position = " .. point.toString(currentUnitValues.position))
 
-        io.write("Pressed any keys to skip to the next unit : ")
-        io.flush()
-        io.read()
+        --io.write("Pressed any keys to skip to the next unit : ")
+        --io.flush()
+        --io.read()
 
         -- Select the right targets
         targets = nil
@@ -702,29 +708,47 @@ local function partOne (nbUnits, elfs, goblins, map)
     --  print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.toString(goblins[i].position))
     --end
 
-    -- Debug map
-    print(mapToString(map))
-
-    print("@@@@@@@@@@@ END TURN " .. nbTurn .. " ! @@@@@@@@@@@")
-
     local l = firstUnit
     while l do
       print("The " .. l.value.type .. ", Health = " .. l.value.health .. ", Attack =" .. l.value.attack .. ", Position = " .. point.toString(l.value.position))
       l = l.next
     end
 
+    -- Debug map
+    print(mapToString(map))
+
+    print("@@@@@@@@@@@ END TURN " .. nbTurn .. " ! @@@@@@@@@@@")
+
     io.write("Pressed any keys to play one more turn : ")
     io.flush()
     io.read()
 
-    nbTurn = nbTurn + 1
+    print("CCCUCUUURENT UNTITIITITIT", currentUnit)
+    if currentUnit == nil then
+      if not done then
+        nbTurn = nbTurn + 1
+      end
+    else
+      nbTurn = nbTurn - 1
+    end
   end
 
   -- Debug map
   print(mapToString(map))
 
-  return 0;
+  local l = firstUnit
+  while l do
+    if l.value.health > 0 then
+      finalScore = finalScore + l.value.health
+    end
+    l = l.next
+  end
 
+  print("NB TURN", nbTurn)
+
+  print("FINAL SCORE", finalScore)
+
+  return nbTurn * finalScore;
 end
 
 ------------------------------------------------------------------------
@@ -776,6 +800,7 @@ function preProcessing(inputFile)
 
         -- Create the unit with all the parameters
         local newUnit = {
+          listIndex = nil,
           type=currentLine:sub(temp, temp),
           position=point.new{temp-1, i-1},
           attack=3,

@@ -50,7 +50,7 @@ local mains = {
   [12] = {day12.day12Main, "Day12_Subterranean_Sustainability/input.txt"},
   [13] = {day13.day13Main, "Day13_Mine_Cart_Madness/input.txt"},
   [14] = {day14.day14Main, ""},
-  [15] = {day15.day15Main, "Day15_Beverage_Bandits/smallInput2.txt"},
+  [15] = {day15.day15Main, "Day15_Beverage_Bandits/smallInput1.txt"},
   --[16] = {day16.day16Main, "Day10_The_Stars_Align/input.txt"},
 }
 
