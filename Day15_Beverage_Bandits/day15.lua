@@ -38,7 +38,7 @@ end
 ------------------------------------------------------------------------
 -- Exist at least one path to that square !
 ------------------------------------------------------------------------
-function isInRange(currentTargetPos)
+function isInRange(currentTargetPos, map)
   local isInRange = false
   local finalPoints = {}
   -- for each side (bottom, right, left, top) = Inverse of the Reading Order)
@@ -63,7 +63,7 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function foundEnemies(currentTargetPos, type)
+function foundEnemies(currentTargetPos, type, map)
   local isInRange = false
   local finalPoints = {}
   -- for each side (in the Reading Order)
@@ -148,7 +148,7 @@ function findNextPlayingUnit (units)
     end
   end
 
-  print(point.toString(nextUnit.position))
+  --print(point.toString(nextUnit.position))
 
   return nextUnit, finalIndex
 end
@@ -217,7 +217,11 @@ function mergeUnitLists (nbUnits, ...)
     end
 
     for i = 1,#competingUnit do
-      --print(competingUnit[i].position)
+      if competingUnit[i].position ~= nil then
+        print("ICICICI", point.toString(competingUnit[i].position))
+      else
+        print("nilll")
+      end
     end
 
     nextPlayingUnit, UnitTeamIndex = findNextPlayingUnit(competingUnit)
@@ -289,7 +293,7 @@ function chooseNextPoint(currentPoint, endingPoint, heuristique)
   --local finalPosition = nil
 
   -- Get all the adjacent squares around the current point
-  _, possibleNextPoints = isInRange(currentPoint)
+  _, possibleNextPoints = isInRange(currentPoint, map)
 
   possibleNextPoints = point.bubbleSortPoints(possibleNextPoints, heuristique, endingPoint)
   return possibleNextPoints
@@ -436,12 +440,12 @@ function findNextPositionToReach(rootUnit, targets, map)
     --print("CURRENT " .. i .. "eme TARGET = " .. point.toString(targets[i].position))
 
     -- Study if the target can be in range
-    local inRange, availableSpots = isInRange(targets[i])
+    local inRange, availableSpots = isInRange(targets[i], map)
     if inRange then
       --print("IS IN RANGE !")
       -- if it is, find the closest reachable position for each adjacent square (top, bottom, right, left) and take the lowest one.
       -- This step will also compute the length of each closest reachable position
-      -- local _, adjacentSquares = isInRange(rootUnit)
+      -- local _, adjacentSquares = isInRange(rootUnit, map)
 
       -- /!\ NEED TO REFACTOR that in a DIJKSTRA method to avoid recomputing twice the same square.
       -- The Dijkstra will compute all squares (basically doesn't finish when reaching the target)
@@ -478,12 +482,12 @@ function findNextPositionToReach(rootUnit, targets, map)
   return finalNextStep
 end
 
-function isAttackPossible(unit, targets)
+function isAttackPossible(unit, targets, map)
   local canAttack = false
   local enemyList = {}
   -- Get adjacent squares to study them
 
-  _, adjacentSquares = foundEnemies(unit, targets[1].type)
+  _, adjacentSquares = foundEnemies(unit, targets[1].type, map)
 
   -- Found out which enemies is on those squares (to retrieve their infos)
   for squareIndex = 1, #adjacentSquares do
@@ -519,7 +523,7 @@ end
 ------------------------------------------------------------------------
 -- ATTACK
 ------------------------------------------------------------------------
-function attackUnit(attackingUnit, attackingUnitValues, closeEnemies, nbUnits, goblins, elfs, map)
+function attackUnit(attackingUnit, attackingUnitValues, closeEnemies, nbUnits, goblinsLeft, elfsLeft, map)
   local done = false
   local elfDied = false
 
@@ -564,20 +568,20 @@ function attackUnit(attackingUnit, attackingUnitValues, closeEnemies, nbUnits, g
 
     -- Remove it from his own list (for the next turn)
     if attackingUnitValues.type == "E" then
-      table.remove(goblins, victim.listIndex)
-      done = #goblins <= 0
+      table.remove(goblinsLeft, victim.listIndex)
+      done = #goblinsLeft <= 0
       -- Shift all the listIndex of all units left
-      for i = 1,#goblins do
-        goblins[i].listIndex = goblins[i].listIndex - 1
-        --print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.toString(goblins[i].position))
+      for i = 1,#goblinsLeft do
+        goblinsLeft[i].listIndex = goblinsLeft[i].listIndex - 1
+        --print("GOBLINS " .. i .. ", Health = " .. goblinsLeft[i].health .. ", Attack =" .. goblinsLeft[i].attack .. ", Position = " .. point.toString(goblinsLeft[i].position))
       end
     elseif attackingUnitValues.type == "G" then
       elfDied = true
-      table.remove(elfs, victim.listIndex)
-      done = #elfs <= 0
-      for i = 1,#elfs do
-        elfs[i].listIndex = elfs[i].listIndex - 1
-        --print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
+      table.remove(elfsLeft, victim.listIndex)
+      done = #elfsLeft <= 0
+      for i = 1,#elfsLeft do
+        elfsLeft[i].listIndex = elfsLeft[i].listIndex - 1
+        --print("ELFS " .. i .. ", Health = " .. elfsLeft[i].health .. ", Attack =" .. elfsLeft[i].attack .. ", Position = " .. point.toString(elfsLeft[i].position))
       end
     end
 
@@ -585,7 +589,7 @@ function attackUnit(attackingUnit, attackingUnitValues, closeEnemies, nbUnits, g
     map[victim.position.y+1][victim.position.x+1] = "."
   end
 
-  return done, elfDied, nbUnits, attackingUnit, goblins, elfs, map
+  return done, elfDied, nbUnits, attackingUnit, goblinsLeft, elfsLeft, map
 end
 
 ------------------------------------------------------------------------
@@ -646,7 +650,7 @@ local function partOne (nbUnits, elfs, goblins, map)
           -----------------------------
           -- FIRST: TRY TO ATTACK
           -- Tag (Add) all adjacent cells (up, down, left, right) that are not wall or unit.
-          local canAttack, closeEnemies = isAttackPossible(currentUnitValues, targets)
+          local canAttack, closeEnemies = isAttackPossible(currentUnitValues, targets, map)
           if canAttack and currentUnitValues.attackPoint >= 0 then
             -- ATTACK
             print("** ATTACK: The " .. currentUnitValues.type .. " decided to attack !")
@@ -696,31 +700,145 @@ local function partOne (nbUnits, elfs, goblins, map)
       currentUnit = currentUnit.next
     end
 
-    -- Sort each unit in their respective list
-    -- Maybe later for optimization purpose.
-    -- NOP NOW !
-
-    --print("BUBBLE SORT TIME !!!!")
     elfs = list.bubbleSortList(elfs, isNotUnitsInRO)
     goblins = list.bubbleSortList(goblins, isNotUnitsInRO)
 
-    --for i = 1,#elfs do
-    --  print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
-    --end
+    print("@@@@@@@@@@@ END TURN " .. nbTurn .. " ! @@@@@@@@@@@")
 
-    -- goblins list should be order in the reading order !
-    --for i = 1,#goblins do
-    --  print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.toString(goblins[i].position))
-    --end
+    --io.write("Pressed any keys to play one more turn : ")
+    --io.flush()
+    --io.read()
 
-    --local l = firstUnit
-    --while l do
-    --  print("The " .. l.value.type .. ", Health = " .. l.value.health .. ", Attack =" .. l.value.attack .. ", Position = " .. point.toString(l.value.position))
-    --  l = l.next
-    --end
+    if currentUnit == nil then
+      if not done then
+        nbTurn = nbTurn + 1
+      end
+    else
+      nbTurn = nbTurn - 1
+    end
+  end
 
-    -- Debug map
-    --print(mapToString(map))
+  local l = firstUnit
+  while l do
+    if l.value.health > 0 then
+      finalScore = finalScore + l.value.health
+    end
+    l = l.next
+  end
+
+  print("NB TURN", nbTurn)
+  print("FINAL SCORE", finalScore)
+
+  return nbTurn * finalScore;
+end
+
+------------------------------------------------------------------------
+-- partTwo - function used for the part 2
+-- Params:
+--    - inputFile : file handler, input handle.
+-- Return
+--    the final result for the part 2.
+------------------------------------------------------------------------
+local function partTwo (startingNbUnits, startingElfs, startingGoblins, startingMap)
+  local done = false
+
+  local finalScore = 0
+  local firstUnit = nil
+  local nbTurn = 1
+  local elfDied = false
+
+  local nbUnits = startingNbUnits
+  local elfs = startingElfs
+  local goblins = startingGoblins
+  local map = startingMap
+
+  print(startingNbUnits)
+  print(#startingElfs)
+  print(#startingGoblins)
+
+  -- Game Loop
+  while not done and not elfDied and nbTurn <= 10000  do
+
+    print("@@@@@@@@@@@ START TURN " .. nbTurn .. " ! @@@@@@@@@@@")
+
+    -- Merge all the unit list into one big ordered by playing turn !
+    -- also reset all the actions points
+    local firstUnit = mergeUnitLists(nbUnits, elfs, goblins)
+
+    -- PLay one turn for each unit
+    local currentUnit = firstUnit
+    while currentUnit and not done and not elfDied do
+
+      -- Retrieve all the info of the current unit
+      local currentUnitValues = currentUnit.value
+
+      if currentUnitValues ~= nil then
+        print("** START TURN: The " .. currentUnitValues.type .. ", Health = " .. currentUnitValues.health .. ", Attack =" .. currentUnitValues.attack .. ", Position = " .. point.toString(currentUnitValues.position))
+
+        -- Select the right targets
+        local targets = nil
+        if currentUnitValues.type == "E" then
+          targets = goblins
+        elseif currentUnitValues.type == "G" then
+          targets = elfs
+        end
+
+        -- Iterate over all targets left
+        local inRangeCells = {}
+
+        local endTurn = false
+        repeat
+          -----------------------------
+          -- FIRST: TRY TO ATTACK
+          -- Tag (Add) all adjacent cells (up, down, left, right) that are not wall or unit.
+          local canAttack, closeEnemies = isAttackPossible(currentUnitValues, targets, map)
+          if canAttack and currentUnitValues.attackPoint >= 0 then
+            -- ATTACK
+            print("** ATTACK: The " .. currentUnitValues.type .. " decided to attack !")
+            done, elfDied, nbUnits, currentUnit, goblins, elfs, map = attackUnit(currentUnit, currentUnitValues, closeEnemies, nbUnits, goblins, elfs, map)
+            if done or elfDied then
+              break
+            end
+
+            currentUnitValues.attackPoint = currentUnitValues.attackPoint - 1
+            endTurn = true
+          end
+
+          if not endTurn then
+            -----------------------------
+            -- SECONDE: TRY TO MOVE
+            local nextStep = findNextPositionToReach(currentUnitValues, targets, map)
+            if nextStep ~= nil and currentUnitValues.movementPoint > 0 then
+              print("** MOVE: The " .. currentUnitValues.type .. " choose square " .. point.toString(nextStep.position) .. " as target !")
+
+              -- Update the map
+              map[currentUnitValues.position.y+1][currentUnitValues.position.x+1] = "."
+
+              -- MOVE
+              print("** MOVE: The " .. currentUnitValues.type .. " move from " .. point.toString(currentUnitValues.position) .. " to " .. point.toString(nextStep.position) .. " to reach his final target" .. " TODO " .. "!")
+              currentUnitValues.position = nextStep.position
+
+              -- Update the map
+              map[currentUnitValues.position.y+1][currentUnitValues.position.x+1] = currentUnitValues.type
+
+              currentUnitValues.movementPoint = currentUnitValues.movementPoint - 1
+            else
+              endTurn = true
+            end
+          end
+        until endTurn or (currentUnitValues.movementPoint <= 0 and currentUnitValues.attackPoint <= 0)
+
+        print("** END TURN: The " .. currentUnitValues.type .. ", Health = " .. currentUnitValues.health .. ", Attack =" .. currentUnitValues.attack .. ", Position = " .. point.toString(currentUnitValues.position))
+      else
+        print("Ghost unit..")
+      end
+
+      -- Update the unit
+      currentUnit = currentUnit.next
+    end
+
+    elfs = list.bubbleSortList(elfs, isNotUnitsInRO)
+    goblins = list.bubbleSortList(goblins, isNotUnitsInRO)
 
     print("@@@@@@@@@@@ END TURN " .. nbTurn .. " ! @@@@@@@@@@@")
 
@@ -740,195 +858,16 @@ local function partOne (nbUnits, elfs, goblins, map)
   -- Debug map
   print(mapToString(map))
 
-  local l = firstUnit
-  while l do
-    if l.value.health > 0 then
-      finalScore = finalScore + l.value.health
-    end
-    l = l.next
+
+  for i = 1,#elfs do
+    finalScore = finalScore + elfs[i].health
   end
 
   print("NB TURN", nbTurn)
 
   print("FINAL SCORE", finalScore)
 
-  return nbTurn * finalScore;
-end
-
-------------------------------------------------------------------------
--- partTwo - function used for the part 2
--- Params:
---    - inputFile : file handler, input handle.
--- Return
---    the final result for the part 2.
-------------------------------------------------------------------------
-local function partTwo (nbUnits, elfs, goblins, map)
-  local finalScore = 0
-  local firstUnit = nil
-
-  -- Game Loop
-  local done = false
-  local elfNotDied = false
-  nbTurn = 1
-  while not done do
-    while not done and not elfDied and nbTurn <= 100 do
-
-      print("@@@@@@@@@@@ START TURN " .. nbTurn .. " ! @@@@@@@@@@@")
-
-      -- Merge all the unit list into one big ordered by playing turn !
-      -- also reset all the actions points
-      firstUnit = mergeUnitLists(nbUnits, elfs, goblins)
-
-      --local l = firstUnit
-      --while l do
-      --  print("The " .. l.value.type .. ", Health = " .. l.value.health .. ", Attack =" .. l.value.attack .. ", Position = " .. point.toString(l.value.position))
-      --  l = l.next
-      --end
-
-      -- PLay one turn for each unit
-      local currentUnit = firstUnit
-      while currentUnit and not done do
-
-        -- Retrieve all the info of the current unit
-        currentUnitValues = currentUnit.value
-
-        if currentUnitValues ~= nil then
-          print("** START TURN: The " .. currentUnitValues.type .. ", Health = " .. currentUnitValues.health .. ", Attack =" .. currentUnitValues.attack .. ", Position = " .. point.toString(currentUnitValues.position))
-
-          --io.write("Pressed any keys to skip to the next unit : ")
-          --io.flush()
-          --io.read()
-
-          -- Select the right targets
-          targets = nil
-          if currentUnitValues.type == "E" then
-            targets = goblins
-          elseif currentUnitValues.type == "G" then
-            targets = elfs
-          end
-
-          -- Iterate over all targets left
-          local inRangeCells = {}
-
-          local endTurn = false
-          repeat
-            -----------------------------
-            -- FIRST: TRY TO ATTACK
-            -- Tag (Add) all adjacent cells (up, down, left, right) that are not wall or unit.
-            local canAttack, closeEnemies = isAttackPossible(currentUnitValues, targets)
-            if canAttack and currentUnitValues.attackPoint >= 0 then
-              -- ATTACK
-              print("** ATTACK: The " .. currentUnitValues.type .. " decided to attack !")
-              done, elfDied, nbUnits, currentUnit, goblins, elfs, map = attackUnit(currentUnit, currentUnitValues, closeEnemies, nbUnits, goblins, elfs, map)
-              if done then
-                break
-              end
-
-              currentUnitValues.attackPoint = currentUnitValues.attackPoint - 1
-              endTurn = true
-            end
-
-            if not endTurn then
-              -----------------------------
-              -- SECONDE: TRY TO MOVE
-              local nextStep = findNextPositionToReach(currentUnitValues, targets, map)
-              if nextStep ~= nil and currentUnitValues.movementPoint > 0 then
-                print("** MOVE: The " .. currentUnitValues.type .. " choose square " .. point.toString(nextStep.position) .. " as target !")
-
-                -- Update the map
-                map[currentUnitValues.position.y+1][currentUnitValues.position.x+1] = "."
-
-                -- MOVE
-                print("** MOVE: The " .. currentUnitValues.type .. " move from " .. point.toString(currentUnitValues.position) .. " to " .. point.toString(nextStep.position) .. " to reach his final target" .. " TODO " .. "!")
-                currentUnitValues.position = nextStep.position
-
-                -- Update the map
-                map[currentUnitValues.position.y+1][currentUnitValues.position.x+1] = currentUnitValues.type
-
-                currentUnitValues.movementPoint = currentUnitValues.movementPoint - 1
-              else
-                endTurn = true
-              end
-            end
-          until endTurn or (currentUnitValues.movementPoint <= 0 and currentUnitValues.attackPoint <= 0)
-
-          print("** END TURN: The " .. currentUnitValues.type .. ", Health = " .. currentUnitValues.health .. ", Attack =" .. currentUnitValues.attack .. ", Position = " .. point.toString(currentUnitValues.position))
-
-          -- Debug map
-          --print(mapToString(map))
-
-        else
-          print("Ghost unit..")
-        end
-
-        -- Update the unit
-        currentUnit = currentUnit.next
-      end
-
-      -- Sort each unit in their respective list
-      -- Maybe later for optimization purpose.
-      -- NOP NOW !
-
-      --print("BUBBLE SORT TIME !!!!")
-      elfs = list.bubbleSortList(elfs, isNotUnitsInRO)
-      goblins = list.bubbleSortList(goblins, isNotUnitsInRO)
-
-      --for i = 1,#elfs do
-      --  print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
-      --end
-
-      -- goblins list should be order in the reading order !
-      --for i = 1,#goblins do
-      --  print("GOBLINS " .. i .. ", Health = " .. goblins[i].health .. ", Attack =" .. goblins[i].attack .. ", Position = " .. point.toString(goblins[i].position))
-      --end
-
-      --local l = firstUnit
-      --while l do
-      --  print("The " .. l.value.type .. ", Health = " .. l.value.health .. ", Attack =" .. l.value.attack .. ", Position = " .. point.toString(l.value.position))
-      --  l = l.next
-      --end
-
-      -- Debug map
-      --print(mapToString(map))
-
-      print("@@@@@@@@@@@ END TURN " .. nbTurn .. " ! @@@@@@@@@@@")
-
-      --io.write("Pressed any keys to play one more turn : ")
-      --io.flush()
-      --io.read()
-
-      if currentUnit == nil then
-        if not done then
-          nbTurn = nbTurn + 1
-        end
-      else
-        nbTurn = nbTurn - 1
-      end
-    end
-    if elfDied then
-      for i = 1,#elfs do
-        incrementAttackDamage(elfs[i], 1)
-      end
-      elfDied = false
-    end
-  end
-
-  -- Debug map
-  print(mapToString(map))
-
-  local l = firstUnit
-  while l do
-    if l.value.health > 0 then
-      finalScore = finalScore + l.value.health
-    end
-    l = l.next
-  end
-
-  print("NB TURN", nbTurn)
-
-  print("FINAL SCORE", finalScore)
-
-  return nbTurn * finalScore;
+  return done, elfDied, nbTurn * finalScore;
 end
 
 ------------------------------------------------------------------------
@@ -1005,7 +944,7 @@ function day15Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
-  nbUnits, elfs, goblins, map = preProcessing(inputFile)
+  local nbUnits, elfs, goblins, map = preProcessing(inputFile)
 
   -- DEBUG HERE
   -----------------------------------------
@@ -1028,8 +967,38 @@ function day15Main (filename)
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
 
+  local done = false
+  local elfDied = false
+  local result = 0
+  local finish = false
+
   -- Launch and print the final result
-  print("Result part two :", partTwo(nbUnits, elfs, goblins, map));
+  local currentAttackBoost = 1
+  while not finish do
+    done, elfDied, result = partTwo(nbUnits, elfs, goblins, map)
+
+    if elfDied then
+      done = false
+      elfDied = false
+
+      nbUnits, elfs, goblins, map = preProcessing(inputFile)
+
+      inputFile:seek("set");
+
+      for i = 1,#elfs do
+        incrementAttackDamage(elfs[i], currentAttackBoost)
+      end
+
+      currentAttackBoost = currentAttackBoost + 1
+
+      for i = 1,#elfs do
+        print("ELFS " .. i .. ", Health = " .. elfs[i].health .. ", Attack =" .. elfs[i].attack .. ", Position = " .. point.toString(elfs[i].position))
+      end
+    end
+
+    finish = done and not elfDied
+  end
+  print("Result part two :", result);
 
   -- Finally close the file
   inputFile:close();
