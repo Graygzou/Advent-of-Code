@@ -108,25 +108,71 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function equalsList(list1, list2)
+function addList(list1, list2)
   if #list1 ~= #list2 then return end
-  local equals = true
+  local newPoint = list1
   for i = 1, #list2 do
-    equals = equals and list1[i] == list2[i]
+    newPoint[i] = newPoint[i] + list2[i]
   end
-  return equals
+  return newPoint
 end
 ------------------------------------------------------------------------
 -- Tests
 ------------------------------------------------------------------------
 if PRINT_TEST then
-  print("++ Tests equals function for point ++")
-  print(equalsList({4,8}, {4,8}) == true)
-  print(equalsList({4,8}, {8,4}) == false)
-  print(equalsList({0,9}, {0,8}) == false)
-  print(equalsList({9,0}, {9,0}) == true)
-  print(equalsList({6,9}, {2,9}) == false)
+  print("|-------------------------------------------|")
+  print("| Tests ADD function for list :             |")
+  print("|-------------------------------------------|")
+  print(list.equals(addList({6,5}, {0,0}), {6,5}))
+  print(list.equals(addList({6,5}, {0,0}), {6,5}))
+  print(list.equals(addList({2,2}, {2,2}), {4,4}))
+  print(list.equals(addList({0,0}, {6,5}), {6,5}))
+  print(list.equals(addList({2,2}, {-2,-2}), {0,0}))
 end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function equals(list1, list2)
+  if #list1 ~= #list2 then return end
+  local isEquals = true
+  for i = 1, #list2 do
+    isEquals = isEquals and list1[i] == list2[i]
+  end
+  return isEquals
+end
+------------------------------------------------------------------------
+-- Tests
+------------------------------------------------------------------------
+if PRINT_TEST then
+  print("++ Tests equals function for list ++")
+  print(equals({4,8}, {4,8}) == true)
+  print(equals({4,8}, {8,4}) == false)
+  print(equals({0,9}, {0,8}) == false)
+  print(equals({9,0}, {9,0}) == true)
+  print(equals({6,9}, {2,9}) == false)
+end
+
+------------------------------------------------------------------------
+-- Not a deepcopy function.
+------------------------------------------------------------------------
+function copy(list)
+  local newList = {}
+  for i = 1,#list do
+    newList[i] = list[i]
+  end
+  return newList
+end
+if PRINT_TEST then
+  print("++ Tests copy function for list ++")
+  print(equals(copy({}), {}) == true)
+  print(equals(copy({4,8}), {4,8}) == true)
+  print(equals(copy({4,8}), {8,4}) == false)
+  print(equals(copy({8,4}), {4,8}) == false)
+  print(equals(copy({20,15,1005,0,82}), {20,15,1005,0,82}) == true)
+end
+
+
 
 if PRINT_TEST then
   print("|*******************************************|")
@@ -143,7 +189,8 @@ list = {
   Set = Set,
   bubbleSortList = bubbleSortList,
   contains = contains,
-  equalsList = equalsList,
+  equals = equals,
+  copy = copy,
 }
 
 return list

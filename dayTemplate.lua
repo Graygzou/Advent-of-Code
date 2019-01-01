@@ -57,20 +57,23 @@ end
 -- Main - Main function
 --#################################################################
 function dayXMain (filename)
+
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
-  -- Launch and print the final result
-  print("Result part one :", partOne(inputFile));
+  local partOneResult = partOne(inputFile)
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
 
-  -- Launch and print the final result
-  print("Result part two :", partTwo(inputFile));
+  local partTwoResult = partTwo(inputFile)
 
   -- Finally close the file
   inputFile:close();
+
+  print("Result part one :", partOneResult);
+  print("Result part two :", partTwoResult);
+
 end
 
 --#################################################################

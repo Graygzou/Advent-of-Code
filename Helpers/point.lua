@@ -54,30 +54,6 @@ function equals(point1, point2, dimension)
   return equals
 end
 
-
-------------------------------------------------------------------------
---
-------------------------------------------------------------------------
-function addList(list1, list2)
-  if #list1 ~= #list2 then return end
-  local newPoint = list1
-  for i = 1, #list2 do
-    newPoint[i] = newPoint[i] + list2[i]
-  end
-  return newPoint
-end
-------------------------------------------------------------------------
--- Tests
-------------------------------------------------------------------------
-print("|-------------------------------------------|")
-print("| Tests ADD function for list :             |")
-print("|-------------------------------------------|")
-print(equalsList(addList({6,5}, {0,0}), {6,5}))
-print(equalsList(addList({6,5}, {0,0}), {6,5}))
-print(equalsList(addList({0,0}, {6,5}), {6,5}))
-print(equalsList(addList({2,2}, {2,2}), {4,4}))
-print(equalsList(addList({2,2}, {-2,-2}), {0,0}))
-
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
