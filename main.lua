@@ -51,7 +51,7 @@ local mains = {
   [13] = {day13.day13Main, "Day13_Mine_Cart_Madness/input.txt"},
   [14] = {day14.day14Main, ""},
   [15] = {day15.day15Main, "Day15_Beverage_Bandits/input.txt"},
-  [16] = {day16.day16Main, "Day16_Chronal_Classification/input0.txt"},
+  [16] = {day16.day16Main, "Day16_Chronal_Classification/input.txt"},
 }
 
 -- Retrieve input from the player

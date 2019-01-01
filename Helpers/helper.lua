@@ -4,6 +4,7 @@
 --################################
 
 local P = {} -- packages
+local PRINT_TEST = true
 
 --#################################################################
 -- Package settings
@@ -13,6 +14,12 @@ if _REQUIREDNAME == nil then
   helper = P
 else
   _G[_REQUIREDNAME] = P
+end
+
+if PRINT_TEST then
+  print("|*******************************************|")
+  print("|Package HELPER : BEGIN TESTS               |")
+  print("|*******************************************|")
 end
 
 --#################################################################
@@ -90,6 +97,66 @@ function saveLinesToArray(inputFile)
   return days;
 end
 
+--------------------------------------------------------------------------
+--
+--------------------------------------------------------------------------
+function decimalToBinary (value)
+  local binary = ""
+  local temp = value
+  repeat
+    -- Concat the next value to the binary result
+    binary = (temp % 2) .. binary
+    -- Update the value
+    temp = (temp // 2)
+  until temp <= 0
+  -- Complete if necessary with zeros
+  local currentLength = #binary
+  for i = currentLength, 3 do
+    binary = "0" .. binary
+  end
+  return binary
+end
+---------------------------------------------
+-- Tests
+---------------------------------------------
+if PRINT_TEST then
+  print("== Tests decimalToBinary function ==")
+  print(decimalToBinary(0) == "0000")
+  print(decimalToBinary(1) == "0001")
+  print(decimalToBinary(3) == "0011")
+  print(decimalToBinary(5) == "0101")
+  print(decimalToBinary(8) == "1000")
+  print(decimalToBinary(11) == "1011")
+  print(decimalToBinary(15) == "1111")
+end
+
+--------------------------------------------------------------------------
+--
+--------------------------------------------------------------------------
+function binaryToDecimal (value)
+  local decimal = 0
+  local binary = "" .. value
+  for i = 1, #binary do
+    if tonumber(binary:sub(i,i)) == 1 then
+      decimal = decimal + 2^((#binary-i))
+    end
+  end
+  return decimal
+end
+---------------------------------------------
+-- Tests
+---------------------------------------------
+if PRINT_TEST then
+  print("== Tests binaryToDecimal function ==")
+  print(binaryToDecimal("0000") == 0)
+  print(binaryToDecimal("0001") == 1)
+  print(binaryToDecimal("0011") == 3)
+  print(binaryToDecimal("0101") == 5)
+  print(binaryToDecimal("1000") == 8)
+  print(binaryToDecimal("1011") == 11)
+  print(binaryToDecimal("1111") == 15)
+end
+
 ---------------------------------------------
 -- gsub but works with overlapping pattern
 ---------------------------------------------
@@ -117,14 +184,13 @@ end
 ---------------------------------------------
 -- Tests
 ---------------------------------------------
-print("|-------------------------------------------|")
-print("| Tests findAndReplaceString function :     |")
-print("|-------------------------------------------|")
-print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....!###..!###")
-print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
-print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
-print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
-
+if PRINT_TEST then
+  print("== Tests findAndReplaceString function ==")
+  print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....!###..!###")
+  print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
+  print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
+  print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
+end
 
 
 ------------------------------------------------------------------------
@@ -149,25 +215,21 @@ end
 ---------------------------------------------
 -- Tests
 ---------------------------------------------
-print("|-------------------------------------------|")
-print("| Tests findNextSymbolInString function :   |")
-print("|-------------------------------------------|")
-print(findNextSymbolInString("#######", 0, 7, {"G", "E"}) == nil)
-print(findNextSymbolInString("#.#.#G#", 0, 7, {"G", "E"}) == 6)
-print(findNextSymbolInString("#...EG#", 0, 7, {"G", "E"}) == 5)
-print(findNextSymbolInString("#...GG#", 0, 7, {"G", "E"}) == 5)
-print(findNextSymbolInString("#...GE#", 0, 7, {"G", "E"}) == 5)
-print(findNextSymbolInString("#...FE#", 0, 7, {"G", "E"}) == 6)
-
-------------------------------------------------------------------------
---
------------------------------------------------------------------------
-function dijkstra(pointsArray, startingPos, endingPos)
-  
-
+if PRINT_TEST then
+  print("== Tests findNextSymbolInString function for list ==")
+  print(findNextSymbolInString("#######", 0, 7, {"G", "E"}) == nil)
+  print(findNextSymbolInString("#.#.#G#", 0, 7, {"G", "E"}) == 6)
+  print(findNextSymbolInString("#...EG#", 0, 7, {"G", "E"}) == 5)
+  print(findNextSymbolInString("#...GG#", 0, 7, {"G", "E"}) == 5)
+  print(findNextSymbolInString("#...GE#", 0, 7, {"G", "E"}) == 5)
+  print(findNextSymbolInString("#...FE#", 0, 7, {"G", "E"}) == 6)
 end
 
-
+if PRINT_TEST then
+  print("|*******************************************|")
+  print("|Package HELPER : END TESTS                 |")
+  print("|*******************************************|")
+end
 --#################################################################
 -- Package end
 --#################################################################
@@ -179,6 +241,8 @@ helper = {
   saveLinesToArray = saveLinesToArray,
   findAndReplaceString = findAndReplaceString,
   findNextSymbolInString = findNextSymbolInString,
+  decimalToBinary = decimalToBinary,
+  binaryToDecimal = binaryToDecimal,
 }
 
 return helper

@@ -4,6 +4,7 @@
 --################################
 
 local P = {} -- packages
+local PRINT_TEST = false
 
 --#################################################################
 -- Package settings
@@ -15,6 +16,12 @@ else
   _G[_REQUIREDNAME] = P
 end
 
+if PRINT_TEST then
+  print("|*******************************************|")
+  print("|Package STACK : BEGIN TESTS                |")
+  print("|*******************************************|")
+end
+
 --#################################################################
 -- Private functions
 --#################################################################
@@ -23,22 +30,34 @@ end
 -- Public functions
 --#################################################################
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function new ()
   return {first = 0, last = -1}
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function pushleft (stack, value)
   local first = stack.first - 1
   stack.first = first
   stack[first] = value
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function pushright (stack, value)
   local last = stack.last + 1
   stack.last = last
   stack[last] = value
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function popleft (stack)
   local first = stack.first
   if first > stack.last then return nil end
@@ -48,6 +67,9 @@ function popleft (stack)
   return value
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function popright (stack)
   local last = stack.last
   if stack.first > last then return nil end
@@ -57,6 +79,9 @@ function popright (stack)
   return value
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function printstack (stack)
   for k, v in pairs(stack) do
     if k ~= "first" and k ~= "last" then
@@ -65,6 +90,9 @@ function printstack (stack)
   end
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function getSize (stack)
   local size = 0
   for k, v in pairs(stack) do
@@ -75,6 +103,9 @@ function getSize (stack)
   return size
 end
 
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function sortstack(stack)
   tempArray = {}
   local oldIndex = nil
@@ -101,6 +132,11 @@ function sortstack(stack)
   end
 end
 
+if PRINT_TEST then
+  print("|*******************************************|")
+  print("|Package STACK : END TESTS                  |")
+  print("|*******************************************|")
+end
 --#################################################################
 -- Package end
 --#################################################################

@@ -26,20 +26,17 @@ end
 -- Private functions
 --#################################################################
 
-
-
-
 --#################################################################
 -- Public functions
 --#################################################################
 
----------------------------------------
+-----------------------------------------------------
 -- Set - function to create set data structure
 -- Params:
 --    - list : existing (can be empty) list.
 -- Return:
 --     the set datastructure.
----------------------------------------
+-----------------------------------------------------
 function Set (list)
   local set = {};
   for _, l in ipairs (list) do set[l] = true end;
@@ -64,6 +61,10 @@ function bubbleSortList (list, swapFunction, ...)
   end -- end for 1
   return resStruct;
 end
+---------------------------------------------
+-- Tests
+---------------------------------------------
+
 
 ------------------------------------------------------------------------------------
 -- Helpers function know if an element is contained into a list
@@ -95,7 +96,7 @@ end
 -- Tests
 ---------------------------------------------
 if PRINT_TEST then
-  print("++ Tests contains function ++")
+  print("== Tests CONTAINS function ==")
   print(contains({}, 2) == false)
   print(contains({2}, 3) == false)
   print(contains({8}, 8) == true)
@@ -108,7 +109,42 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function addList(list1, list2)
+function equals(list1, list2, equalsFct)
+  if #list1 ~= #list2 then return end
+  local isEquals = true
+  for i = 1, #list2 do
+    if equalsFct == nil then
+      isEquals = isEquals and list1[i] == list2[i]
+    else
+      isEquals = isEquals and equalsFct(list1[i], list2[i])
+    end
+  end
+  return isEquals
+end
+------------------------------------------------------------------------
+-- Tests
+------------------------------------------------------------------------
+function isNumberEquals(num1, num2)
+  return tonumber(num1) == tonumber(num2)
+end
+
+if PRINT_TEST then
+  print("== Tests EQUALS function for list ==")
+  print(equals({4,8}, {4,8}, isNumberEquals) == true)
+  print(equals({4,8}, {8,4}, isNumberEquals) == false)
+  print(equals({0,9}, {0,8}, isNumberEquals) == false)
+  print(equals({9,0}, {9,0}, isNumberEquals) == true)
+  print(equals({6,9}, {2,9}, isNumberEquals) == false)
+end
+
+------------------------------------------------------------------------
+-- Add all the elements of list2 into the list1.
+-- Return : list that contains the sum of each elements of both list.
+--
+-- Pre-condition: #list1 == #list2
+-- Post-condition: Pour tous e in finallist, finalList[e] == list1[e] + list2[e]
+------------------------------------------------------------------------
+function add(list1, list2)
   if #list1 ~= #list2 then return end
   local newPoint = list1
   for i = 1, #list2 do
@@ -120,37 +156,12 @@ end
 -- Tests
 ------------------------------------------------------------------------
 if PRINT_TEST then
-  print("|-------------------------------------------|")
-  print("| Tests ADD function for list :             |")
-  print("|-------------------------------------------|")
-  print(list.equals(addList({6,5}, {0,0}), {6,5}))
-  print(list.equals(addList({6,5}, {0,0}), {6,5}))
-  print(list.equals(addList({2,2}, {2,2}), {4,4}))
-  print(list.equals(addList({0,0}, {6,5}), {6,5}))
-  print(list.equals(addList({2,2}, {-2,-2}), {0,0}))
-end
-
-------------------------------------------------------------------------
---
-------------------------------------------------------------------------
-function equals(list1, list2)
-  if #list1 ~= #list2 then return end
-  local isEquals = true
-  for i = 1, #list2 do
-    isEquals = isEquals and list1[i] == list2[i]
-  end
-  return isEquals
-end
-------------------------------------------------------------------------
--- Tests
-------------------------------------------------------------------------
-if PRINT_TEST then
-  print("++ Tests equals function for list ++")
-  print(equals({4,8}, {4,8}) == true)
-  print(equals({4,8}, {8,4}) == false)
-  print(equals({0,9}, {0,8}) == false)
-  print(equals({9,0}, {9,0}) == true)
-  print(equals({6,9}, {2,9}) == false)
+  print("== Tests ADD function for list ==")
+  print(equals(add({6,5}, {0,0}), {6,5}))
+  print(equals(add({6,5}, {0,0}), {6,5}))
+  print(equals(add({2,2}, {2,2}), {4,4}))
+  print(equals(add({0,0}, {6,5}), {6,5}))
+  print(equals(add({2,2}, {-2,-2}), {0,0}))
 end
 
 ------------------------------------------------------------------------
@@ -164,14 +175,27 @@ function copy(list)
   return newList
 end
 if PRINT_TEST then
-  print("++ Tests copy function for list ++")
-  print(equals(copy({}), {}) == true)
-  print(equals(copy({4,8}), {4,8}) == true)
-  print(equals(copy({4,8}), {8,4}) == false)
-  print(equals(copy({8,4}), {4,8}) == false)
-  print(equals(copy({20,15,1005,0,82}), {20,15,1005,0,82}) == true)
+  print("== Tests COPY function for list ==")
+  list = {} ; print(equals(copy(list), list) == true and copy(list) ~= list)
+  list = {4,8} ; print(equals(copy(list), list) == true and copy(list) ~= list)
+  list = {4,8} ; print(equals(copy(list), {8,4}) == false and copy(list) ~= {8,4})
+  list = {8,4} ; print(equals(copy(list), {4,8}) == false and copy(list) ~= {4,8})
+  list = {20,15,1005,0,82} ; print(equals(copy(list), list) == true and copy(list) ~= list)
 end
 
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function toString(list)
+  local string = "["
+  for i = 1,#list do
+    string = string .. list[i]
+    if i < #list then
+      string = string .. ", "
+    end
+  end
+  return string .. "]"
+end
 
 
 if PRINT_TEST then
@@ -191,6 +215,7 @@ list = {
   contains = contains,
   equals = equals,
   copy = copy,
+  toString = toString,
 }
 
 return list
