@@ -141,7 +141,7 @@ function binaryToDecimal (value)
       decimal = decimal + 2^((#binary-i))
     end
   end
-  return decimal
+  return math.floor(decimal)
 end
 ---------------------------------------------
 -- Tests

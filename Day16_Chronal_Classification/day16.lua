@@ -193,20 +193,15 @@ end
 ------------------------------------------------------------------------
 function binaryOperation (a, b, binaryDigitOpe)
   local result = nil
+
   -- Binary decomposition
   local binaryA = helper.decimalToBinary(a)
   local binaryB = helper.decimalToBinary(b)
-
   --print("BINARY A", binaryA)
   --print("BINARY B", binaryB)
 
   -- Apply the binary operation here
   local temp = bitwiseOp(binaryA, binaryB, binaryDigitOpe[1])
-
-  --function (a, b) return a & b; end
-
-  --print("temp", temp)
-  --print("temp converted", helper.binaryToDecimal(temp))
 
   -- Convert and return the result into decimal
   return helper.binaryToDecimal(temp)
@@ -218,16 +213,23 @@ end
 function preprocessing (nbRegisters, inputFile)
   local fileLines = helper.saveLinesToArray(inputFile);
 
+  -- Part 1
   local resultPartOne = 0
-
   -- a sample is composed of 1 input, 1 instruction and 1 output.
   local samples = {}
-
   local inputs = {}
   local instructions = {}
   local outputs = {}
 
+  -- We consider there is at least one register
+  local matchingString = "(%d+)"
+  -- Construct the matchingString (depend on the number of registers)
+  for nbReg = 2, nbRegisters do
+    matchingString = matchingString .. ",*%s*(%d+)"
+  end
+
   -- Part 2
+  local skipNextLines = 0
   local correspondanceTable = {}
   local truthCounter = {}
   for i = 1, 16 do
@@ -239,42 +241,35 @@ function preprocessing (nbRegisters, inputFile)
   end
 
   local functionsRef = {
-    [1]  = function(r, i) applyArithmeticOpcode(r, i, 0, function (a, b) return a + b; end); end,                                  -- addr
-    [2]  = function(r, i) applyArithmeticOpcode(r, i, 1, function (a, b) return a + b; end); end,                                  -- addi
-    [3]  = function(r, i) applyArithmeticOpcode(r, i, 0, function (a, b) return a * b; end); end,                                  -- mulr
-    [4]  = function(r, i) applyArithmeticOpcode(r, i, 1, function (a, b) return a * b; end); end,                                  -- muli
-    [5] = function(r, i) applyArithmeticOpcode(r, i, 0, binaryOperation, function (a, b) return a & b; end); end,                  -- banr
-    [6] = function(r, i) applyArithmeticOpcode(r, i, 1, binaryOperation, function (a, b) return a & b; end); end,                  -- bani
-    [7] = function(r, i) applyArithmeticOpcode(r, i, 0, binaryOperation, function (a, b) return a | b; end); end,                  -- borr
-    [8] = function(r, i) applyArithmeticOpcode(r, i, 1, binaryOperation, function (a, b) return a | b; end); end,                  -- bori
-    [9] = function(r, i) applyAssignmentOpcode(r, i, 0); end,                                                                      -- setr
-    [10] = function(r, i) applyAssignmentOpcode(r, i, 1); end,                                                                     -- seti
-    [11]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) < tonumber(b); end); end,   -- gtir
-    [12]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) < tonumber(b); end); end,   -- gtri
-    [13]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) < tonumber(b); end); end,   -- gtrr
-    [14]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) == tonumber(b); end); end,  -- eqir
-    [15]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) == tonumber(b); end); end,  -- eqri
-    [16]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) == tonumber(b); end); end,  -- eqrr
+    [1]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a + b; end); end,                                  -- addr
+    [2]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a + b; end); end,                                  -- addi
+    [3]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a * b; end); end,                                  -- mulr
+    [4]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a * b; end); end,                                  -- muli
+    [5]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a & b; end}); end,                  -- banr
+    [6]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a & b; end}); end,                  -- bani
+    [7]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a | b; end}); end,                  -- borr
+    [8]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a | b; end}); end,                  -- bori
+    [9]  = function(r, i) return applyAssignmentOpcode(r, i, 0); end,                                                                      -- setr
+    [10] = function(r, i) return applyAssignmentOpcode(r, i, 1); end,                                                                     -- seti
+    [11] = function(r, i) return applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtir
+    [12] = function(r, i) return applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtri
+    [13] = function(r, i) return applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtrr
+    [14] = function(r, i) return applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) == tonumber(b); end); end,    -- eqir
+    [15] = function(r, i) return applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) == tonumber(b); end); end,    -- eqri
+    [16] = function(r, i) return applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) == tonumber(b); end); end,    -- eqrr
   }
 
-  for i = 1, #fileLines do
+  for linesIndex = 1, #fileLines do
     local nbTruths = 0
     local invalidIndex = {}
 
     -- Test if the following line is a sample (before registers states, an instruction and an after register states)
-    if fileLines[i]:find("Before") ~= nil then
-
-      -- We consider there is at least one register
-      local matchingString = "(%d+)"
-      -- Construct the matchingString (depend on the number of registers)
-      for nbReg = 2, nbRegisters do
-        matchingString = matchingString .. ",*%s*(%d+)"
-      end
+    if fileLines[linesIndex]:find("Before") ~= nil then
 
       -- Use capture to ONLY retrieve interesting information from the sample
-      local initRegistersValues = { string.match(fileLines[i],  "%[" .. matchingString .. "%]") }
-      local instruction = { string.match(fileLines[i+1], matchingString) }
-      local finalRegistersValues = { string.match(fileLines[i+2],  "%[" .. matchingString .. "%]") }
+      local initRegistersValues = { string.match(fileLines[linesIndex],  "%[" .. matchingString .. "%]") }
+      local instruction = { string.match(fileLines[linesIndex+1], matchingString) }
+      local finalRegistersValues = { string.match(fileLines[linesIndex+2],  "%[" .. matchingString .. "%]") }
 
       ----------------
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a + b; end) then
@@ -380,9 +375,9 @@ function preprocessing (nbRegisters, inputFile)
         resultPartOne = resultPartOne + 1
 
         -- Collected the sample for part 2
-        table.insert(inputs, initRegistersValues)
-        table.insert(instructions, instruction)
-        table.insert(outputs, finalRegistersValues)
+        --table.insert(inputs, initRegistersValues)
+        --table.insert(instructions, instruction)
+        --table.insert(outputs, finalRegistersValues)
       end
 
       -- Part 2
@@ -393,9 +388,9 @@ function preprocessing (nbRegisters, inputFile)
       end
 
       if tonumber(instruction[1])+1 == 11 then
-        --print("BEFORE", fileLines[i]:sub(fileLines[i]:find("%["), #fileLines[i]))
-        print("INSTRUCTION", fileLines[i+1])
-        --print("AFTER", fileLines[i+2]:sub(fileLines[i+2]:find("%["), #fileLines[i+2]))
+        --print("BEFORE", fileLines[linesIndex]:sub(fileLines[linesIndex]:find("%["), #fileLines[linesIndex]))
+        print("INSTRUCTION", fileLines[linesIndex+1])
+        --print("AFTER", fileLines[linesIndex+2]:sub(fileLines[linesIndex+2]:find("%["), #fileLines[linesIndex+2]))
 
         print("isAddr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a + b; end))
         print("isAddi = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a + b; end))
@@ -424,8 +419,19 @@ function preprocessing (nbRegisters, inputFile)
       --io.read()
 
       -- Skip the three lines we just processed
-      -- Doesn't work.
-      --i = i + 3
+      -- Doesn't work..
+      skipNextLines = 3
+    else
+      if skipNextLines == 0 then
+        local instruction = { string.match(fileLines[linesIndex], matchingString) }
+
+        if #instruction > 1 then
+          --print("INSTRUCTION", list.toString(instruction))
+          table.insert(instructions, instruction)
+        end
+      else
+        skipNextLines = skipNextLines - 1
+      end
     end                         -- end if
   end                           -- end for
 
@@ -447,9 +453,9 @@ function preprocessing (nbRegisters, inputFile)
   local i = 1
   local nbAdded = 0
   local instructionsResolved = Set{}
-  print("START", #instructionsResolved)
+  --print("START", #instructionsResolved)
   while nbAdded < 16 do
-  --  print(i)
+    --print(i)
     --print(instructionsResolved[i])
     if instructionsResolved[i] == nil then
       local nbTrue = 0
@@ -462,17 +468,19 @@ function preprocessing (nbRegisters, inputFile)
         end
       end
 
-      print("FOUND", i, index, nbTrue)
+      --print("FOUND", i, index, nbTrue)
 
       -- Identify an operation
       if nbTrue == 1 then
-        print("ADD")
+        --print("ADD")
+        -- Update all struct
+        correspondanceTable[i] = index
+
         -- Update the truthCounter table to eliminate that value
         for newIndex = 1, 16 do
           truthCounter[newIndex][index] = false
         end
-        -- Update all struct
-        correspondanceTable[i] = index
+
         -- Tag it has resolved
         instructionsResolved[i] = true
         nbAdded = nbAdded + 1
@@ -488,6 +496,34 @@ function preprocessing (nbRegisters, inputFile)
   for i = 1, #correspondanceTable do
     print(i, correspondanceTable[i])
   end
+
+  -- Init all registers to zero
+  local registers = {0, 0, 0, 0}
+  -- Apply all operations
+  for instructionIndex = 1, #instructions do
+    -- Retrieve the opcode
+    local opcode = instructions[instructionIndex][1]+1
+    print(correspondanceTable[opcode])
+
+    -- Debug
+    print("START", list.toString(registers))
+    print("OP", list.toString(instructions[instructionIndex]))
+    --print(functionsRef[tonumber(correspondanceTable[opcode])])
+
+    -- Compute the result on the current register
+    registers = functionsRef[tonumber(correspondanceTable[opcode])](registers, instructions[instructionIndex])
+
+    print("END", list.toString(registers))
+    --io.write("STOP : ")
+    --io.flush()
+    --io.read()
+  end
+
+  print("FINAL REGISTER = ", list.toString(registers))
+
+  print("==================================================================")
+  print("FINAL RESULT PART TWO = ", registers[1])
+  print("==================================================================")
 
   return inputs, instructions, outputs
 end
