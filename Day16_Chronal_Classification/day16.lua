@@ -23,40 +23,6 @@ end
 --#################################################################
 
 ------------------------------------------------------------------------
--- partOne - function used for the part 1
--- Params:
---    - inputFile : file handler, input handle.
--- Return
---    the final result for the part 1.
-------------------------------------------------------------------------
-local function partOne (inputFile)
-
-  -- TODO
-
-  return 0;
-end
-
-------------------------------------------------------------------------
--- partTwo - function used for the part 2
--- Params:
---    - inputFile : file handler, input handle.
--- Return
---    the final result for the part 2.
-------------------------------------------------------------------------
-local function partTwo (inputs, instructions, outputs)
-
-  for i = 1, #inputs do
-    print(list.toString(inputs[i]))
-    print(list.toString(instructions[i]))
-    print(list.toString(outputs[i]))
-    print()
-  end
-
-  return 0;
-end
-
-
-------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
 function applyArithmeticOpcode(registers, instruction, mode, opcodeFunction, args)
@@ -215,12 +181,6 @@ function preprocessing (nbRegisters, inputFile)
 
   -- Part 1
   local resultPartOne = 0
-  -- a sample is composed of 1 input, 1 instruction and 1 output.
-  local samples = {}
-  local inputs = {}
-  local instructions = {}
-  local outputs = {}
-
   -- We consider there is at least one register
   local matchingString = "(%d+)"
   -- Construct the matchingString (depend on the number of registers)
@@ -230,6 +190,7 @@ function preprocessing (nbRegisters, inputFile)
 
   -- Part 2
   local skipNextLines = 0
+  local instructions = {}
   local correspondanceTable = {}
   local truthCounter = {}
   for i = 1, 16 do
@@ -241,16 +202,16 @@ function preprocessing (nbRegisters, inputFile)
   end
 
   local functionsRef = {
-    [1]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a + b; end); end,                                  -- addr
-    [2]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a + b; end); end,                                  -- addi
-    [3]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a * b; end); end,                                  -- mulr
-    [4]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a * b; end); end,                                  -- muli
-    [5]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a & b; end}); end,                  -- banr
-    [6]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a & b; end}); end,                  -- bani
-    [7]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a | b; end}); end,                  -- borr
-    [8]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a | b; end}); end,                  -- bori
-    [9]  = function(r, i) return applyAssignmentOpcode(r, i, 0); end,                                                                      -- setr
-    [10] = function(r, i) return applyAssignmentOpcode(r, i, 1); end,                                                                     -- seti
+    [1]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a + b; end); end,                          -- addr
+    [2]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a + b; end); end,                          -- addi
+    [3]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a * b; end); end,                          -- mulr
+    [4]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a * b; end); end,                          -- muli
+    [5]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a & b; end}); end,       -- banr
+    [6]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a & b; end}); end,       -- bani
+    [7]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a | b; end}); end,       -- borr
+    [8]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a | b; end}); end,       -- bori
+    [9]  = function(r, i) return applyAssignmentOpcode(r, i, 0); end,                                                             -- setr
+    [10] = function(r, i) return applyAssignmentOpcode(r, i, 1); end,                                                             -- seti
     [11] = function(r, i) return applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtir
     [12] = function(r, i) return applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtri
     [13] = function(r, i) return applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtrr
@@ -271,31 +232,28 @@ function preprocessing (nbRegisters, inputFile)
       local instruction = { string.match(fileLines[linesIndex+1], matchingString) }
       local finalRegistersValues = { string.match(fileLines[linesIndex+2],  "%[" .. matchingString .. "%]") }
 
-      ----------------
+      --------------------------------------------------------------------
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a + b; end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 1)
       end
-
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a + b; end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 2)
       end
-
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a * b; end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 3)
       end
-
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a * b; end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 4)
       end
-      -----------------
+      --------------------------------------------------------------------
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a & b; end) then
         nbTruths = nbTruths + 1
       else
@@ -306,64 +264,54 @@ function preprocessing (nbRegisters, inputFile)
       else
         table.insert(invalidIndex, 6)
       end
-
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 7)
       end
-
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 8)
       end
-      -----------------
-
+      --------------------------------------------------------------------
       if isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 0) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 9)
       end
-
       if isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 1) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 10)
       end
-      -----------------
-
+      --------------------------------------------------------------------
       if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) > tonumber(b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 11)
       end
-
       if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) > tonumber(b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 12)
       end
-
       if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) > tonumber(b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 13)
       end
-      -----------------
-
+      --------------------------------------------------------------------
       if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) == tonumber(b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 14)
       end
-
       if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) == tonumber(b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 15)
       end
-
       if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) == tonumber(b); end) then
         nbTruths = nbTruths + 1
       else
@@ -373,11 +321,6 @@ function preprocessing (nbRegisters, inputFile)
       -- Part 1
       if nbTruths >= 3 then
         resultPartOne = resultPartOne + 1
-
-        -- Collected the sample for part 2
-        --table.insert(inputs, initRegistersValues)
-        --table.insert(instructions, instruction)
-        --table.insert(outputs, finalRegistersValues)
       end
 
       -- Part 2
@@ -387,7 +330,8 @@ function preprocessing (nbRegisters, inputFile)
         truthCounter[tonumber(instruction[1])+1][invalidIndex[index]] = false
       end
 
-      if tonumber(instruction[1])+1 == 11 then
+      -- DEBUG
+      if tonumber(instruction[1])+1 == 50 then
         --print("BEFORE", fileLines[linesIndex]:sub(fileLines[linesIndex]:find("%["), #fileLines[linesIndex]))
         print("INSTRUCTION", fileLines[linesIndex+1])
         --print("AFTER", fileLines[linesIndex+2]:sub(fileLines[linesIndex+2]:find("%["), #fileLines[linesIndex+2]))
@@ -414,49 +358,29 @@ function preprocessing (nbRegisters, inputFile)
         end
       end
 
-      --io.write("STOP : ")
-      --io.flush()
-      --io.read()
-
       -- Skip the three lines we just processed
-      -- Doesn't work..
       skipNextLines = 3
     else
       if skipNextLines == 0 then
         local instruction = { string.match(fileLines[linesIndex], matchingString) }
 
         if #instruction > 1 then
-          --print("INSTRUCTION", list.toString(instruction))
           table.insert(instructions, instruction)
         end
       else
         skipNextLines = skipNextLines - 1
       end
     end                         -- end if
-  end                           -- end for
+  end                        -- end for
 
   print("==================================================================")
   print("FINAL RESULT PART ONE", resultPartOne)
   print("==================================================================")
 
-  for i = 1, #truthCounter do
-    print(list.toString(truthCounter[i]))
-  end
-
-  io.write("STOP 2 : ")
-  io.flush()
-  io.read()
-
-  -- Tests if we're currently finding the current number
-  --print(instructionsResolved[instruction[1]+1])
-
   local i = 1
   local nbAdded = 0
   local instructionsResolved = Set{}
-  --print("START", #instructionsResolved)
   while nbAdded < 16 do
-    --print(i)
-    --print(instructionsResolved[i])
     if instructionsResolved[i] == nil then
       local nbTrue = 0
       local index = nil
@@ -468,11 +392,8 @@ function preprocessing (nbRegisters, inputFile)
         end
       end
 
-      --print("FOUND", i, index, nbTrue)
-
       -- Identify an operation
       if nbTrue == 1 then
-        --print("ADD")
         -- Update all struct
         correspondanceTable[i] = index
 
@@ -491,41 +412,24 @@ function preprocessing (nbRegisters, inputFile)
     i = (i % 16) + 1
   end
 
-  print("END", #instructionsResolved)
-
-  for i = 1, #correspondanceTable do
-    print(i, correspondanceTable[i])
-  end
-
   -- Init all registers to zero
   local registers = {0, 0, 0, 0}
+
   -- Apply all operations
   for instructionIndex = 1, #instructions do
     -- Retrieve the opcode
     local opcode = instructions[instructionIndex][1]+1
-    print(correspondanceTable[opcode])
-
-    -- Debug
-    print("START", list.toString(registers))
-    print("OP", list.toString(instructions[instructionIndex]))
-    --print(functionsRef[tonumber(correspondanceTable[opcode])])
-
     -- Compute the result on the current register
     registers = functionsRef[tonumber(correspondanceTable[opcode])](registers, instructions[instructionIndex])
-
-    print("END", list.toString(registers))
-    --io.write("STOP : ")
-    --io.flush()
-    --io.read()
   end
 
-  print("FINAL REGISTER = ", list.toString(registers))
+  print("Final Register = ", list.toString(registers))
 
   print("==================================================================")
   print("FINAL RESULT PART TWO = ", registers[1])
   print("==================================================================")
 
-  return inputs, instructions, outputs
+  return resultPartOne, registers[1]
 end
 
 
@@ -539,9 +443,7 @@ function day16Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
-  local inputs, instructions, outputs = preprocessing(nbRegisters, inputFile)
-
-  --local partTwoResult = partTwo(inputs, instructions, outputs)
+  local partOneResult, partTwoResult = preprocessing(nbRegisters, inputFile)
 
   -- Finally close the file
   inputFile:close();
