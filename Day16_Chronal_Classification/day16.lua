@@ -59,27 +59,77 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function isArithmeticOpcode(regBefore, instruction, regAfter, mode, opcodeFunction, ...)
-  local temp = list.copy(regBefore)
-  local args = {...}
-
+function applyArithmeticOpcode(registers, instruction, mode, opcodeFunction, args)
+  local A = nil
+  local B = nil
   if mode == 0 then
     -- Register mode
-    print("A = ", tonumber(temp[tonumber(instruction[2])+1]))
-    print("B = ", tonumber(temp[tonumber(instruction[3])+1]))
-    temp[tonumber(instruction[4])+1] = opcodeFunction(tonumber(temp[tonumber(instruction[2])+1]), tonumber(temp[tonumber(instruction[3])+1]), args)
-  else
+    A = tonumber(registers[tonumber(instruction[2])+1])
+    B = tonumber(registers[tonumber(instruction[3])+1])
+  elseif mode == 1 then
     -- Immediate mode
-    print("A = ", tonumber(temp[tonumber(instruction[2])+1]))
-    print("B = ", tonumber(instruction[3]))
-    temp[tonumber(instruction[4])+1] = opcodeFunction(tonumber(temp[tonumber(instruction[2])+1]), tonumber(instruction[3]), args)
+    A = tonumber(registers[tonumber(instruction[2])+1])
+    B = tonumber(instruction[3])
   end
+  --print("A = ", A)
+  --print("B = ", B)
+  registers[tonumber(instruction[4])+1] = opcodeFunction(A, B, args)
+  return registers
+end
 
-  --for i = 1, #temp do
-  --  print(temp[i])
-  --end
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function applyAssignmentOpcode(registers, instruction, mode)
+  local A = nil
+  if mode == 0 then
+    -- Register mode
+    A = tonumber(registers[tonumber(instruction[2])+1])
+  elseif mode == 1 then
+    -- Immediate mode
+    A = tonumber(instruction[2])
+  end
+  --print("A = ", A)
+  registers[tonumber(instruction[4])+1] = A
+  return registers
+end
 
-  return list.equals(temp, regAfter, function(a, b)
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function applyComparaisonOpcode(registers, instruction, mode, opcodeFunction)
+  local A = nil
+  local B = nil
+  if mode == 0 then
+    -- immediate/register mode
+    A = tonumber(instruction[2])
+    B = tonumber(registers[tonumber(instruction[3])+1])
+  elseif mode == 1 then
+    -- register/immediate mode
+    A = tonumber(registers[tonumber(instruction[2])+1])
+    B = tonumber(instruction[3])
+  elseif mode == 2 then
+    -- register/register mode
+    A = tonumber(registers[tonumber(instruction[2])+1])
+    B = tonumber(registers[tonumber(instruction[3])+1])
+  end
+  --print("A = ", A)
+  --print("B = ", B)
+  if opcodeFunction(A, B) then
+    registers[tonumber(instruction[4])+1] = 1
+  else
+    registers[tonumber(instruction[4])+1] = 0
+  end
+  return registers
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function isArithmeticOpcode(regBefore, instruction, regAfter, mode, opcodeFunction, ...)
+  local temp = list.copy(regBefore)
+
+  return list.equals(applyArithmeticOpcode(temp, instruction, mode, opcodeFunction, {...}), regAfter, function(a, b)
     return tonumber(a) == tonumber(b)
   end)
 end
@@ -90,17 +140,7 @@ end
 function isAssignmentOpcode(regBefore, instruction, regAfter, mode)
   local temp = list.copy(regBefore)
 
-  if mode == 0 then
-    -- Register mode
-    print("A = ", tonumber(temp[tonumber(instruction[2])+1]))
-    temp[tonumber(instruction[4])+1] = tonumber(temp[tonumber(instruction[2])+1])
-  else
-    -- Immediate mode
-    print("A = ", tonumber(instruction[2]))
-    temp[tonumber(instruction[4])+1] = tonumber(instruction[2])
-  end
-
-  return list.equals(temp, regAfter, function(a, b)
+  return list.equals(applyAssignmentOpcode(temp, instruction, mode), regAfter, function(a, b)
     return tonumber(a) == tonumber(b)
   end)
 end
@@ -111,35 +151,7 @@ end
 function isComparaisonOpcode(regBefore, instruction, regAfter, mode, opcodeFunction)
   local temp = list.copy(regBefore)
 
-  if mode == 0 then
-    -- immediate/register mode
-    print("A = ", tonumber(instruction[2]))
-    print("B = ", tonumber(temp[tonumber(instruction[3])+1]))
-    if opcodeFunction(tonumber(instruction[2]), tonumber(temp[tonumber(instruction[3])+1])) then
-      temp[tonumber(instruction[4])+1] = 1
-    else
-      temp[tonumber(instruction[4])+1] = 0
-    end
-  elseif mode == 1 then
-    -- register/immediate mode
-    print("A = ", tonumber(temp[tonumber(instruction[2])+1]))
-    print("B = ", tonumber(instruction[3]))
-    if opcodeFunction(tonumber(temp[tonumber(instruction[2])+1]), tonumber(instruction[3])) then
-      temp[tonumber(instruction[4])+1] = 1
-    else
-      temp[tonumber(instruction[4])+1] = 0
-    end
-  else
-    -- register/register mode
-    print("A = ", tonumber(temp[tonumber(instruction[2])+1]))
-    print("B = ", tonumber(temp[tonumber(instruction[3])+1]))
-    if opcodeFunction(tonumber(temp[tonumber(instruction[2])+1]), tonumber(temp[tonumber(instruction[3])+1])) then
-      temp[tonumber(instruction[4])+1] = 1
-    else
-      temp[tonumber(instruction[4])+1] = 0
-    end
-  end
-  return list.equals(temp, regAfter, function(a, b)
+  return list.equals(applyComparaisonOpcode(temp, instruction, mode, opcodeFunction), regAfter, function(a, b)
     return tonumber(a) == tonumber(b)
   end)
 end
@@ -200,7 +212,6 @@ function binaryOperation (a, b, binaryDigitOpe)
   return helper.binaryToDecimal(temp)
 end
 
-
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
@@ -216,14 +227,42 @@ function preprocessing (nbRegisters, inputFile)
   local instructions = {}
   local outputs = {}
 
+  -- Part 2
+  local correspondanceTable = {}
+  local truthCounter = {}
+  for i = 1, 16 do
+    correspondanceTable[i] = nil
+    truthCounter[i] = {}
+    for j = 1, 16 do
+      truthCounter[i][j] = true
+    end
+  end
+
+  local functionsRef = {
+    [1]  = function(r, i) applyArithmeticOpcode(r, i, 0, function (a, b) return a + b; end); end,                                  -- addr
+    [2]  = function(r, i) applyArithmeticOpcode(r, i, 1, function (a, b) return a + b; end); end,                                  -- addi
+    [3]  = function(r, i) applyArithmeticOpcode(r, i, 0, function (a, b) return a * b; end); end,                                  -- mulr
+    [4]  = function(r, i) applyArithmeticOpcode(r, i, 1, function (a, b) return a * b; end); end,                                  -- muli
+    [5] = function(r, i) applyArithmeticOpcode(r, i, 0, binaryOperation, function (a, b) return a & b; end); end,                  -- banr
+    [6] = function(r, i) applyArithmeticOpcode(r, i, 1, binaryOperation, function (a, b) return a & b; end); end,                  -- bani
+    [7] = function(r, i) applyArithmeticOpcode(r, i, 0, binaryOperation, function (a, b) return a | b; end); end,                  -- borr
+    [8] = function(r, i) applyArithmeticOpcode(r, i, 1, binaryOperation, function (a, b) return a | b; end); end,                  -- bori
+    [9] = function(r, i) applyAssignmentOpcode(r, i, 0); end,                                                                      -- setr
+    [10] = function(r, i) applyAssignmentOpcode(r, i, 1); end,                                                                     -- seti
+    [11]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) < tonumber(b); end); end,   -- gtir
+    [12]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) < tonumber(b); end); end,   -- gtri
+    [13]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) < tonumber(b); end); end,   -- gtrr
+    [14]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) == tonumber(b); end); end,  -- eqir
+    [15]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 1, function (a, b) return tonumber(a) == tonumber(b); end); end,  -- eqri
+    [16]  = function(r, i, m, f, a) applyComparaisonOpcode(r, i, 2, function (a, b) return tonumber(a) == tonumber(b); end); end,  -- eqrr
+  }
+
   for i = 1, #fileLines do
     local nbTruths = 0
+    local invalidIndex = {}
 
     -- Test if the following line is a sample (before registers states, an instruction and an after register states)
     if fileLines[i]:find("Before") ~= nil then
-      print("BEFORE", fileLines[i]:sub(fileLines[i]:find("%["), #fileLines[i]))
-      print("INSTRUCTION", fileLines[i+1])
-      print("AFTER", fileLines[i+2]:sub(fileLines[i+2]:find("%["), #fileLines[i+2]))
 
       -- We consider there is at least one register
       local matchingString = "(%d+)"
@@ -238,85 +277,105 @@ function preprocessing (nbRegisters, inputFile)
       local finalRegistersValues = { string.match(fileLines[i+2],  "%[" .. matchingString .. "%]") }
 
       ----------------
-
-      print("isAddr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a + b; end))
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a + b; end) then
         nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 1)
       end
 
-      print("isAddi = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a + b; end))
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a + b; end) then
         nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 2)
       end
 
-      print("isMulr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a * b; end))
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a * b; end) then
         nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 3)
       end
-      print("isMuli = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a * b; end))
+
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a * b; end) then
         nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 4)
       end
-
       -----------------
-
-      print("setr = ", isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 0))
-      if isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 0) then
-        nbTruths = nbTruths + 1
-      end
-      print("seti = ", isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 1))
-      if isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 1) then
-        nbTruths = nbTruths + 1
-      end
-
-      -----------------
-
-      print("isEqir = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) == tonumber(b); end))
-      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) == tonumber(b); end) then
-        nbTruths = nbTruths + 1
-      end
-      print("isEqri = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) == tonumber(b); end))
-      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) == tonumber(b); end) then
-        nbTruths = nbTruths + 1
-      end
-      print("isEqrr = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) == tonumber(b); end))
-      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) == tonumber(b); end) then
-        nbTruths = nbTruths + 1
-      end
-
-      -----------------
-
-      print("isGtir = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) > tonumber(b); end))
-      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) > tonumber(b); end) then
-        nbTruths = nbTruths + 1
-      end
-      print("isGtri = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) > tonumber(b); end))
-      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) > tonumber(b); end) then
-        nbTruths = nbTruths + 1
-      end
-      print("isGtrr = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) > tonumber(b); end))
-      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) > tonumber(b); end) then
-        nbTruths = nbTruths + 1
-      end
-
-      -----------------
-      print("isBanr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a & b; end))
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a & b; end) then
         nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 5)
       end
-      print("isBani = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a & b; end))
       if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a & b; end) then
         nbTruths = nbTruths + 1
-      end
-      print("isBorr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end))
-      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end) then
-        nbTruths = nbTruths + 1
-      end
-      print("isBori = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end))
-      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end) then
-        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 6)
       end
 
+      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 7)
+      end
+
+      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 8)
+      end
+      -----------------
+
+      if isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 0) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 9)
+      end
+
+      if isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 1) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 10)
+      end
+      -----------------
+
+      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) > tonumber(b); end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 11)
+      end
+
+      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) > tonumber(b); end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 12)
+      end
+
+      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) > tonumber(b); end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 13)
+      end
+      -----------------
+
+      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) == tonumber(b); end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 14)
+      end
+
+      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) == tonumber(b); end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 15)
+      end
+
+      if isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) == tonumber(b); end) then
+        nbTruths = nbTruths + 1
+      else
+        table.insert(invalidIndex, 16)
+      end
+
+      -- Part 1
       if nbTruths >= 3 then
         resultPartOne = resultPartOne + 1
 
@@ -326,20 +385,109 @@ function preprocessing (nbRegisters, inputFile)
         table.insert(outputs, finalRegistersValues)
       end
 
+      -- Part 2
+      -- Increment the total of truth for all index
+      for index = 1, #invalidIndex do
+        -- We start at 1 (not 0) so instruction[1] + 1
+        truthCounter[tonumber(instruction[1])+1][invalidIndex[index]] = false
+      end
+
+      if tonumber(instruction[1])+1 == 11 then
+        --print("BEFORE", fileLines[i]:sub(fileLines[i]:find("%["), #fileLines[i]))
+        print("INSTRUCTION", fileLines[i+1])
+        --print("AFTER", fileLines[i+2]:sub(fileLines[i+2]:find("%["), #fileLines[i+2]))
+
+        print("isAddr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a + b; end))
+        print("isAddi = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a + b; end))
+        print("isMulr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a * b; end))
+        print("isMuli = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a * b; end))
+        print("isBanr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a & b; end))
+        print("isBani = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a & b; end))
+        print("isBorr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end))
+        print("isBori = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end))
+        print("setr = ", isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 0))
+        print("seti = ", isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 1))
+        print("isGtir = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) > tonumber(b); end))
+        print("isGtri = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) > tonumber(b); end))
+        print("isGtrr = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) > tonumber(b); end))
+        print("isEqir = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) == tonumber(b); end))
+        print("isEqri = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return tonumber(a) == tonumber(b); end))
+        print("isEqrr = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 2, function (a, b) return tonumber(a) == tonumber(b); end))
+
+        for i = 1, #truthCounter do
+          print(list.toString(truthCounter[i]))
+        end
+      end
+
+      --io.write("STOP : ")
+      --io.flush()
+      --io.read()
+
       -- Skip the three lines we just processed
       -- Doesn't work.
       --i = i + 3
-    end
-
-    --io.write("PRESSED FOR GO TO THE NEXT SAMPLE : ")
-    --io.flush()
-    --io.read()
-
-  end
+    end                         -- end if
+  end                           -- end for
 
   print("==================================================================")
   print("FINAL RESULT PART ONE", resultPartOne)
   print("==================================================================")
+
+  for i = 1, #truthCounter do
+    print(list.toString(truthCounter[i]))
+  end
+
+  io.write("STOP 2 : ")
+  io.flush()
+  io.read()
+
+  -- Tests if we're currently finding the current number
+  --print(instructionsResolved[instruction[1]+1])
+
+  local i = 1
+  local nbAdded = 0
+  local instructionsResolved = Set{}
+  print("START", #instructionsResolved)
+  while nbAdded < 16 do
+  --  print(i)
+    --print(instructionsResolved[i])
+    if instructionsResolved[i] == nil then
+      local nbTrue = 0
+      local index = nil
+
+      for j = 1, 16 do
+        if truthCounter[i][j] == true then
+          nbTrue = nbTrue + 1
+          index = j
+        end
+      end
+
+      print("FOUND", i, index, nbTrue)
+
+      -- Identify an operation
+      if nbTrue == 1 then
+        print("ADD")
+        -- Update the truthCounter table to eliminate that value
+        for newIndex = 1, 16 do
+          truthCounter[newIndex][index] = false
+        end
+        -- Update all struct
+        correspondanceTable[i] = index
+        -- Tag it has resolved
+        instructionsResolved[i] = true
+        nbAdded = nbAdded + 1
+      end
+    end
+
+    -- Update the counter i
+    i = (i % 16) + 1
+  end
+
+  print("END", #instructionsResolved)
+
+  for i = 1, #correspondanceTable do
+    print(i, correspondanceTable[i])
+  end
 
   return inputs, instructions, outputs
 end
@@ -357,7 +505,7 @@ function day16Main (filename)
 
   local inputs, instructions, outputs = preprocessing(nbRegisters, inputFile)
 
-  local partTwoResult = partTwo(inputs, instructions, outputs)
+  --local partTwoResult = partTwo(inputs, instructions, outputs)
 
   -- Finally close the file
   inputFile:close();

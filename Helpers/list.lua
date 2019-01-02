@@ -189,14 +189,13 @@ end
 function toString(list)
   local string = "["
   for i = 1,#list do
-    string = string .. list[i]
+    string = string .. string.format("%s", list[i])
     if i < #list then
       string = string .. ", "
     end
   end
   return string .. "]"
 end
-
 
 if PRINT_TEST then
   print("|*******************************************|")
