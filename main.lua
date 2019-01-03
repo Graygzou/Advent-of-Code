@@ -30,6 +30,7 @@ require "Day13_Mine_Cart_Madness.day13"
 require "Day14_Chocolate_Charts.day14"
 require "Day15_Beverage_Bandits.day15"
 require "Day16_Chronal_Classification.day16"
+require "Day17_Reservoir_Research.day17"
 
 -- Variables
 local filename = "";
@@ -52,6 +53,7 @@ local mains = {
   [14] = {day14.day14Main, ""},
   [15] = {day15.day15Main, "Day15_Beverage_Bandits/input.txt"},
   [16] = {day16.day16Main, "Day16_Chronal_Classification/input.txt"},
+  [17] = {day17.day17Main, "Day17_Reservoir_Research/input0.txt"},
 }
 
 -- Retrieve input from the player
