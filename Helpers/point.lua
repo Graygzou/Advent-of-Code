@@ -47,9 +47,9 @@ function equals(point1, point2, dimension)
     dimension = 2
   end
   local equals = true
-  equals = equals and point1.x == point2.x and point1.y == point2.y
+  equals = equals and tonumber(point1.x) == tonumber(point2.x) and tonumber(point1.y) == tonumber(point2.y)
   if dimension == 3 then
-    equals = equals and point1.z == point2.z
+    equals = equals and tonumber(point1.z) == tonumber(point2.z)
   end
   return equals
 end
