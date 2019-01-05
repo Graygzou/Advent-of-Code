@@ -109,7 +109,13 @@ end
 local function partOne (inputFile)
   local finalResult = 0
 
+  --local firstPoint = point.new{500, 0}
+  --local firstPoint = point.new{6, 0}
+  local firstPoint = point.new{5, 0}
+
   local clayPoints = {}
+  local visitedWaterSprings = {}
+  local squaresWithWater = {}
   local waterSprings = stack.new{}
 
   local maxY = nil
@@ -121,17 +127,17 @@ local function partOne (inputFile)
 
   for linesIndex = 1, #fileLines do
     if fileLines[linesIndex]:sub(1,1) == "x" then
-      print(fileLines[linesIndex]:sub(1,1))
-      print(string.match(fileLines[linesIndex],  fileLines[linesIndex]:sub(1,1) .. "=(%d+).*=(%d+)..(%d+)"))
+      --print(fileLines[linesIndex]:sub(1,1))
+      --print(string.match(fileLines[linesIndex],  fileLines[linesIndex]:sub(1,1) .. "=(%d+).*=(%d+)..(%d+)"))
 
       local x, borneMinY, borneMaxY = string.match(fileLines[linesIndex],  fileLines[linesIndex]:sub(1,1) .. "=(%d+).*=(%d+)..(%d+)")
 
       for y = borneMinY, borneMaxY do
-        if minY == nil or tonumber(y) < minY then
-          minY = y
+        if minY == nil or tonumber(y) < tonumber(minY) then
+          minY = tonumber(y)
         end
-        if maxY == nil or tonumber(y) > maxY then
-          maxY = y
+        if maxY == nil or tonumber(y) > tonumber(maxY) then
+          maxY = tonumber(y)
         end
 
         local newClayPoint = point.new{x, y}
@@ -142,16 +148,16 @@ local function partOne (inputFile)
 
       --point.new(tonumber())
     elseif fileLines[linesIndex]:sub(1,1) == "y" then
-      print(fileLines[linesIndex]:sub(1,1))
-      print(string.match(fileLines[linesIndex],  fileLines[linesIndex]:sub(1,1) .. "=(%d+).*=(%d+)..(%d+)"))
+      --print(fileLines[linesIndex]:sub(1,1))
+      --print(string.match(fileLines[linesIndex],  fileLines[linesIndex]:sub(1,1) .. "=(%d+).*=(%d+)..(%d+)"))
 
       local y, borneMinX, borneMaxX = string.match(fileLines[linesIndex],  fileLines[linesIndex]:sub(1,1) .. "=(%d+).*=(%d+)..(%d+)")
 
-      if minY == nil or tonumber(y) < minY then
-        minY = y
+      if minY == nil or tonumber(y) < tonumber(minY) then
+        minY = tonumber(y)
       end
-      if maxY == nil or tonumber(y) > maxY then
-        maxY = y
+      if maxY == nil or tonumber(y) > tonumber(maxY) then
+        maxY = tonumber(y)
       end
 
       for x = borneMinX, borneMaxX do
@@ -169,8 +175,8 @@ local function partOne (inputFile)
   --drawClay()
 
   -- Add the first spring of water
-  stack.pushleft(waterSprings, point.new{500, 0})
-  minY = math.min(0, minY)
+  stack.pushleft(waterSprings, firstPoint)
+  minY = math.min(firstPoint.y, minY)
 
   -- DEBUG
   --print("ClayPoints = ", #clayPoints)
@@ -208,7 +214,10 @@ local function partOne (inputFile)
 
     currentY = currentY - 1
 
+    -- Add the descending score
     finalResult = finalResult + tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y)
+    print("added value = ", tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y))
+    print("NEW RESULT", finalResult)
 
     local previousBorneG = currentPoint
     local previousBorneD = currentPoint
@@ -226,72 +235,107 @@ local function partOne (inputFile)
     if not (currentY > maxY or currentY < minY) then
 
       repeat
-        print("final point =", point.toString(currentPoint))
+        local borneG = nil
+        local borneD = nil
+        if not list.contains(squaresWithWater, currentPoint, point.equals) then
+          print("YOYO")
 
-        -- DEBUG CLAY
-        --print("ClayPoints = ", #clayPoints)
-        --for i = 1, #clayPoints do
-        --  print(point.toString(clayPoints[i]))
-        --end
+          print("final point =", point.toString(currentPoint))
 
-        -- Compute both side of the PREVIOUS floor
-        -- Should ALWAYS give two int
-        thresholdBorneG, _ = findPreviousBorder(previousBorneG, clayPoints)
-        _, thresholdBorneD = findPreviousBorder(previousBorneD, clayPoints)
+          -- DEBUG CLAY
+          --print("ClayPoints = ", #clayPoints)
+          --for i = 1, #clayPoints do
+          --  print(point.toString(clayPoints[i]))
+          --end
 
-        print("thresholdBorneG = ", point.toString(thresholdBorneG))
-        print("thresholdBorneD = ", point.toString(thresholdBorneD))
+          -- Compute both side of the PREVIOUS floor
+          -- Should ALWAYS give two int
+          thresholdBorneG, _ = findPreviousBorder(previousBorneG, clayPoints)
+          _, thresholdBorneD = findPreviousBorder(previousBorneD, clayPoints)
 
-        -- Lift up one step
-        currentPoint.y =  currentPoint.y - 1
+          print("thresholdBorneG = ", point.toString(thresholdBorneG))
+          print("thresholdBorneD = ", point.toString(thresholdBorneD))
 
-        if thresholdBorneG == nil or thresholdBorneD == nil then
-          print("ERROR with thresholdBorne !!")
+          -- Lift up one step
+          currentPoint.y =  currentPoint.y - 1
+
+          if thresholdBorneG == nil or thresholdBorneD == nil then
+            print("ERROR with thresholdBorne !!")
+          end
+
+          borneG, borneD = fillLine(currentPoint, clayPoints, thresholdBorneG, thresholdBorneD)
+
+          if borneG ~= nil then
+            print("borneG", point.toString(borneG))
+          end
+          if borneD ~= nil then
+            print("borneD", point.toString(borneD))
+          end
+
+          previousBorneG = borneG
+          previousBorneD = borneD
+
+          if borneG ~= nil and borneD ~= nil then
+            -- The -2 mean we convert a dry square into a water square AND from the difference
+            finalResult = finalResult + (tonumber(borneD.x) - tonumber(borneG.x)) - 2
+            print("added value = ", (tonumber(borneD.x) - tonumber(borneG.x)) - 2)
+            print("NEW RESULT", finalResult)
+
+            -- Tag those squares
+            for x = borneG.x+1, borneD.x-1  do
+              table.insert(squaresWithWater, point.new{x, currentPoint.y})
+            end
+          end
+
+          print("NEW RESULT", finalResult)
+        else
+          print("LINE ALREADY ADDED ! SKIP IT !")
+
+          -- Lift up one step
+          currentPoint.y =  currentPoint.y - 1
+
+          --previousBorneG = borneG
+          --previousBorneD = borneD
         end
-
-        local borneG, borneD = fillLine(currentPoint, clayPoints, thresholdBorneG, thresholdBorneD)
-
-        if borneG ~= nil then
-          print("borneG", point.toString(borneG))
-        end
-        if borneD ~= nil then
-          print("borneD", point.toString(borneD))
-        end
-
-        previousBorneG = borneG
-        previousBorneD = borneD
-
-        if borneG ~= nil and borneD ~= nil then
-          -- The -2 mean we convert a dry square into a water square AND from the difference
-          finalResult = finalResult + tonumber(borneD.x) - tonumber(borneG.x) - 2
-        end
-
-        print("NEW RESULT", finalResult)
-
         --io.write("PRESSED FOR DEBUG : ")
         --io.flush()
         --io.read()
 
-      until borneG == nil or borneD == nil
+      until previousBorneG == nil or previousBorneD == nil
 
+      print("HERE")
+
+      local newWaterSpring = nil
       if previousBorneG == nil then
-        stack.pushleft(waterSprings, point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1})
-        if previousBorneD ~= nil then
-          finalResult = finalResult + tonumber(previousBorneD.x) - tonumber(thresholdBorneG.x - 1) - 2
+        newWaterSpring = point.new{thresholdBorneD.x + 1, thresholdBorneD.y - 1}
+        if not list.contains(visitedWaterSprings, newWaterSpring, point.equals) then
+          stack.pushleft(waterSprings, newWaterSpring)
+          table.insert(visitedWaterSprings, newWaterSpring)
+
+          if previousBorneD ~= nil then
+            finalResult = finalResult + (tonumber(previousBorneD.x) - tonumber(thresholdBorneG.x - 1)) - 2
+          end
         end
       end
       if previousBorneD == nil then
-        stack.pushleft(waterSprings, point.new{thresholdBorneD.x + 1, thresholdBorneD.y - 1})
-        if previousBorneG ~= nil then
-          finalResult = finalResult + tonumber(thresholdBorneD.x + 1) - tonumber(previousBorneG.x) - 2
+        newWaterSpring = point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1}
+        if not list.contains(visitedWaterSprings, newWaterSpring, point.equals) then
+          stack.pushleft(waterSprings, newWaterSpring)
+          table.insert(visitedWaterSprings, newWaterSpring)
+
+          if previousBorneG ~= nil then
+            finalResult = finalResult + (tonumber(thresholdBorneD.x + 1) - tonumber(previousBorneG.x)) - 2
+          end
         end
       end
 
-      if previousBorneG == nil and previousBorneD == nil  then
-        finalResult = finalResult + tonumber(thresholdBorneD.x + 1) - tonumber(thresholdBorneG.x - 1) - 2
+      if previousBorneG == nil and previousBorneD == nil and
+        (not list.contains(visitedWaterSprings, point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1}, point.equals) or
+        not list.contains(visitedWaterSprings, point.new{thresholdBorneD.x + 1, thresholdBorneD.y - 1}, point.equals)) then
+        finalResult = finalResult + (tonumber(thresholdBorneD.x + 1) - tonumber(thresholdBorneG.x - 1)) - 1
       end
 
-      print("NEW RESULT", finalResult)
+      print("NEW RESULT END", finalResult)
     end
 
     -- Retrieve the next water spring
@@ -303,15 +347,15 @@ local function partOne (inputFile)
 
     nbTurn = nbTurn + 1
 
-    --io.write("PRESSED FOR NEXT TURN : ")
-    --io.flush()
-    --io.read()
+    io.write("PRESSED FOR NEXT TURN : ")
+    io.flush()
+    io.read()
 
   until currentWaterSpring == nil or currentWaterSpring.y > maxY or currentWaterSpring.y < minY or nbTurn > 100
 
   -- TODO
 
-  return 0;
+  return finalResult;
 end
 
 ------------------------------------------------------------------------
