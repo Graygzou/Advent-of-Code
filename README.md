@@ -1,6 +1,6 @@
-# Advent-of-Code-2018
+# Advent-of-Code-2018 in Lua
 
-You can find below a summary of all the strategies I used to resolve each day.
+You can find below a summary of all the strategies I used to resolve each day. All my solutions are in Lua : it was a nice oppurtunity to learn this language from scratch !
 
 ### --- Day 9: Marble Mania ---
 
