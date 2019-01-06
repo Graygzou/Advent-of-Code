@@ -31,6 +31,59 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
+function isLineFullOfWater(currentPoint, clayPoints, squaresWithWater)
+  local isFull = true
+  local y = currentPoint.y
+  local done = false
+
+  -- Left side
+  local x = currentPoint.x
+  while isFull and not set.containsKey(clayPoints, point.new{x, y}, hashFct) do
+    isFull = isFull and set.containsKey(squaresWithWater, point.new{x, y}, hashFct)
+    x = x - 1
+  end
+
+  -- Right side
+  local x = currentPoint.x
+  while isFull and not set.containsKey(clayPoints, point.new{x, y}, hashFct) do
+    isFull = isFull and set.containsKey(squaresWithWater, point.new{x, y}, hashFct)
+    x = x + 1
+  end
+
+  return isFull
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function draw30x30Square(currentPoint, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
+
+  local string = ""
+  for y = currentPoint.y-15, currentPoint.y+15 do
+    for x = currentPoint.x-15, currentPoint.x+15 do
+      local currentPoint = point.new{x, y}
+
+      if set.containsKey(visitedWaterSprings, currentPoint, hashFct) then
+        string = string .. "+"
+      elseif set.containsKey(squaresWithWater, currentPoint, hashFct) then
+        string = string .. "~"
+      elseif set.containsKey(clayPoints, currentPoint, hashFct) then
+        string = string .. "#"
+      elseif set.containsKey(wetSquares, currentPoint, hashFct) then
+        string = string .. "|"
+      else
+        string = string .. "."
+      end
+    end
+    string = string .. "\n"
+  end
+
+  print(string)
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
 function fillLine(currentPoint, clayPoints, thresholdBorneG, thresholdBorneD)
   local borneG = nil
   local borneD = nil
@@ -42,17 +95,17 @@ function fillLine(currentPoint, clayPoints, thresholdBorneG, thresholdBorneD)
     x = x - 1
     found = set.containsKey(clayPoints, point.new{x, currentPoint.y}, hashFct)
 
-    --print("FOUND", found)
-    --print("X =", x, currentPoint.y)
-    --print("X =", thresholdBorneG.x)
-  until x < (tonumber(thresholdBorneG.x) - 1) or found
+    print("FOUND", found)
+    print("X =", x, currentPoint.y)
+    print("X =", thresholdBorneG.x)
+  until x <= (tonumber(thresholdBorneG.x) - 1) or found
   if found then
     borneG = point.new{x, currentPoint.y}
   end
 
   -- Try to find the right limit
-  local x = currentPoint.x
-  local found = false
+  x = currentPoint.x
+  found = false
   repeat
     x = x + 1
     found = set.containsKey(clayPoints, point.new{x, currentPoint.y}, hashFct)
@@ -60,7 +113,7 @@ function fillLine(currentPoint, clayPoints, thresholdBorneG, thresholdBorneD)
     --print("FOUND2", found)
     --print("X2 =", x, currentPoint.y)
     --print("X2 =", thresholdBorneD.x)
-  until x > (tonumber(thresholdBorneD.x) + 1) or found
+  until x >= (tonumber(thresholdBorneD.x) + 1) or found
   if found then
     borneD = point.new{x, currentPoint.y}
   end
@@ -71,29 +124,54 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function findPreviousBorder(currentPoint, clayPoints)
+function findPreviousBorder(currentPoint, y, clayPoints)
   local thresholdBorneG = nil
   local thresholdBorneD = nil
 
   --print(point.toString(currentPoint))
+  print(y)
 
   -- Find the left limit
   local x = currentPoint.x
-
-  while set.containsKey(clayPoints, point.new{x, currentPoint.y}, hashFct) do
+  while set.containsKey(clayPoints, point.new{x, y}, hashFct) do
     x = x - 1
   end
-  thresholdBorneG = point.new{x+1, currentPoint.y}
+  thresholdBorneG = point.new{x+1, y}
 
   -- Find the right limit
-  local x = currentPoint.x
-  while set.containsKey(clayPoints, point.new{x, currentPoint.y}, hashFct) do
+  x = currentPoint.x
+  while set.containsKey(clayPoints, point.new{x, y}, hashFct) do
     x = x + 1
   end
-  thresholdBorneD = point.new{x-1, currentPoint.y}
+  thresholdBorneD = point.new{x-1, y}
 
   return thresholdBorneG, thresholdBorneD
 end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
+function findBorder(currentPoint, y, clayPoints)
+  local thresholdBorneG = nil
+  local thresholdBorneD = nil
+
+  -- Find the left limit
+  local x = currentPoint.x
+  while not set.containsKey(clayPoints, point.new{x, y}, hashFct) do
+    x = x - 1
+  end
+  thresholdBorneG = point.new{x, y}
+
+  -- Find the right limit
+  x = currentPoint.x
+  while not set.containsKey(clayPoints, point.new{x, y}, hashFct) do
+    x = x + 1
+  end
+  thresholdBorneD = point.new{x, y}
+
+  return thresholdBorneG, thresholdBorneD
+end
+
 
 ------------------------------------------------------------------------
 --
@@ -119,12 +197,15 @@ local function partOne (inputFile)
   -- for input4
   --local firstPoint = point.new{5, 0}
   -- for input5
-  local firstPoint = point.new{11, 0}
+  --local firstPoint = point.new{11, 0}
+  -- for input50 / 500
+  local firstPoint = point.new{8, 0}
 
   -- Using a (Hash)Set avoid to call list.contains every time which is heavier than an access with an set..
   local clayPoints = Set{}
   local visitedWaterSprings = Set{}
   local squaresWithWater = Set{}
+  local wetSquares = Set{}
 
   local waterSprings = stack.new{}
 
@@ -179,9 +260,6 @@ local function partOne (inputFile)
     end
   end
 
-  -- TODO maybe
-  --drawClay()
-
   -- Add the first spring of water
   stack.pushleft(waterSprings, firstPoint)
   minY = math.min(firstPoint.y, minY)
@@ -196,12 +274,17 @@ local function partOne (inputFile)
   print("MaxY = ", maxY)
   print()
 
+  -- Retrieve the first water spring
+  local currentWaterSpring = stack.popright(waterSprings)
+  set.addKey(visitedWaterSprings, currentWaterSpring, hashFct)
+  set.addKey(squaresWithWater, currentWaterSpring, hashFct)
+
+  -- Debug function
+  draw30x30Square(currentWaterSpring, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
+
   io.write("... ")
   io.flush()
   io.read()
-
-  -- Retrieve the first water spring
-  local currentWaterSpring = stack.popright(waterSprings)
 
   local nbTurn = 0
   repeat
@@ -211,35 +294,67 @@ local function partOne (inputFile)
     local currentY = currentWaterSpring.y
 
     local currentPoint = nil
-
-    --------
-    -- 1) Fall in straight line until the water hits the first clay point
-    --------
-    print("=== STEP 1 ===")
-    repeat
-      -- Create the new point
-      currentPoint = point.new{currentX, currentY}
-      currentY = currentY + 1
-    until currentY > maxY + 1 or currentY < minY + 1 or set.containsKey(clayPoints, currentPoint, hashFct)
-
-    currentY = currentY - 1
-
-    -- Add the step 1) score
-    finalResult = finalResult + tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y)
-    print("added value = ", tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y))
-    print("NEW RESULT", finalResult)
-
-    local previousBorneG = currentPoint
-    local previousBorneD = currentPoint
     local thresholdBorneG = nil
     local thresholdBorneD = nil
 
+    local step0 = false
+
+    --------
+    -- 0) Check if the new water spring isn't on a "full of water" line
+    --------
+    if isLineFullOfWater(currentWaterSpring, clayPoints, squaresWithWater) then
+      step0 = true
+      currentPoint = currentWaterSpring
+
+      thresholdBorneG, _ = findBorder(point.new{currentWaterSpring.x, currentWaterSpring.y}, currentWaterSpring.y-1, clayPoints)
+      _, thresholdBorneD = findBorder(point.new{currentWaterSpring.x, currentWaterSpring.y}, currentWaterSpring.y-1, clayPoints)
+
+
+      print(point.toString(thresholdBorneG))
+      print(point.toString(thresholdBorneD))
+
+      io.write("FULL WATER LINE : ")
+      io.flush()
+      io.read()
+    else
+      -- Tag it in order to trigger condition 0)
+      set.addKey(squaresWithWater, currentWaterSpring, hashFct)
+
+      --------
+      -- 1) Fall in straight line until the water hits the first clay point
+      --------
+      print("=== STEP 1 ===")
+      repeat
+        -- Create the new point
+        currentPoint = point.new{currentX, currentY}
+        currentY = currentY + 1
+      until currentY > maxY + 1 or currentY < minY + 1 or set.containsKey(clayPoints, currentPoint, hashFct)
+
+      currentY = currentY - 1
+
+      -- Add the step 1) score
+      finalResult = finalResult + tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y)
+      -- Tag those new squares
+      for y = currentWaterSpring.y, currentPoint.y-1  do
+        set.addKey(wetSquares, point.new{currentWaterSpring.x, y}, hashFct)
+      end
+      print("added value = ", tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y))
+      print("NEW RESULT", finalResult)
+
+      io.write("REGULAR : ")
+      io.flush()
+      io.read()
+    end
+
     print("current point =", point.toString(currentPoint))
 
+    local previousBorneG = currentPoint
+    local previousBorneD = currentPoint
+
+    -------
+    -- 2) Fill the current spaces by going up until at least one border isn't found
+    -------
     if not (currentY > maxY or currentY < minY) then
-      -------
-      -- 2) Fill the current spaces by going up until at least one border isn't found
-      -------
       print("=== STEP 2 ===")
       repeat
         local borneG = nil
@@ -249,8 +364,13 @@ local function partOne (inputFile)
 
         -- Compute both side of the PREVIOUS floor
         -- Should ALWAYS give two int !
-        thresholdBorneG, _ = findPreviousBorder(previousBorneG, clayPoints)
-        _, thresholdBorneD = findPreviousBorder(previousBorneD, clayPoints)
+        if not step0 then
+          thresholdBorneG, _ = findPreviousBorder(previousBorneG, previousBorneG.y, clayPoints)
+        end
+        if not step0 then
+          _, thresholdBorneD = findPreviousBorder(previousBorneD, previousBorneD.y, clayPoints)
+        end
+        step0 = false
 
         print("thresholdBorneG = ", point.toString(thresholdBorneG))
         print("thresholdBorneD = ", point.toString(thresholdBorneD))
@@ -274,7 +394,28 @@ local function partOne (inputFile)
         previousBorneG = borneG
         previousBorneD = borneD
 
-        if not set.containsKey(squaresWithWater, currentPoint, hashFct) then
+        if set.containsKey(visitedWaterSprings, currentPoint, hashFct) then
+          -- left side
+          if borneG ~= nil then
+            finalResult = finalResult + (tonumber(currentPoint.x-1) - tonumber(borneG.x))
+            -- Tag those squares
+            for x = borneG.x+1, currentPoint.x-1  do
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+            end
+            print("added left side spring = ", (tonumber(currentPoint.x-1) - tonumber(borneG.x)))
+            print("NEW RESULT", finalResult)
+          end
+          -- right side
+          if borneD ~= nil then
+            finalResult = finalResult + (tonumber(borneD.x-1) - tonumber(currentPoint.x))
+            -- Tag those squares
+            for x = currentPoint.x, borneD.x-1  do
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+            end
+            print("added right side spring = ", (tonumber(borneD.x-1) - tonumber(currentPoint.x)))
+            print("NEW RESULT", finalResult)
+          end
+        elseif not set.containsKey(squaresWithWater, currentPoint, hashFct) then
           -- Add the step 2) score
           if borneG ~= nil and borneD ~= nil then
             -- MAKE SURE WE DIDN'T ALREADY COUNT THEM
@@ -309,6 +450,17 @@ local function partOne (inputFile)
         --io.flush()
         --io.read()
       until previousBorneG == nil or previousBorneD == nil
+      --until ((previousBorneG == nil and not set.containsKey(squaresWithWater, thresholdBorneG, hashFct)) or
+      --      (previousBorneD == nil and set.containsKey(squaresWithWater, thresholdBorneD, hashFct)) or
+      --      previousBorneG == nil or previousBorneD == nil)
+
+      -- Debug function
+      if currentWaterSpring ~= nil then
+        draw30x30Square(currentWaterSpring, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
+      end
+      io.write("PRESSED FOR NEXT TURN : ")
+      io.flush()
+      io.read()
 
       print("=== STEP 3 ===")
       -- Add the score if both side are empty (if needed)
@@ -316,16 +468,24 @@ local function partOne (inputFile)
         if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1}, hashFct) then
           -- add the left side to the score
           finalResult = finalResult + (tonumber(currentPoint.x + 1) - tonumber(thresholdBorneG.x - 1)) - 2
-
+          -- Tag those new squares
+          for x = thresholdBorneG.x-1, currentPoint.x+1  do
+            set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+          end
           print("added value both side (left) = ", (tonumber(currentPoint.x + 1) - tonumber(thresholdBorneG.x - 1)) - 2)
           print("NEW RESULT", finalResult)
+
         end
         if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneD.x + 1, thresholdBorneD.y - 1}, hashFct) then
           -- add the right side to the score
           finalResult = finalResult + (tonumber(thresholdBorneD.x + 1) - tonumber(currentPoint.x - 1)) - 2
-
+          -- Tag those new squares
+          for x = thresholdBorneD.x+1, currentPoint.x-1  do
+            set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+          end
           print("added value both side (right) = ", (tonumber(thresholdBorneD.x + 1) - tonumber(currentPoint.x - 1)) - 2)
           print("NEW RESULT", finalResult)
+
         end
       end
 
@@ -344,20 +504,21 @@ local function partOne (inputFile)
             if not set.containsKey(visitedWaterSprings, point.new{previousBorneD.x - 1, previousBorneD.y}, hashFct) then
 
               finalResult = finalResult + (tonumber(previousBorneD.x - 1) - tonumber(currentPoint.x))
-
+              -- Tag those new squares
+              for x = currentPoint.x, previousBorneD.x-1  do
+                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+              end
               print("added value right only = ", (tonumber(previousBorneD.x - 1) - tonumber(currentPoint.x)))
               print("result ", finalResult)
 
               -- Add the path until the next water spring on this side
               finalResult = finalResult + (tonumber(currentPoint.x) - tonumber(newWaterSpring.x + 1))
-
-              print("added value left waterSpring = ", (tonumber(currentPoint.x) - tonumber(newWaterSpring.x + 1)))
-              print("Result", finalResult)
-
               -- Tag those new squares
-              for x = currentPoint.x, previousBorneD.x-1  do
+              for x = newWaterSpring.x+1, currentPoint.x  do
                 set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
               end
+              print("added value left waterSpring = ", (tonumber(currentPoint.x) - tonumber(newWaterSpring.x + 1)))
+              print("Result", finalResult)
             end
           end
         end
@@ -374,20 +535,21 @@ local function partOne (inputFile)
             if not set.containsKey(visitedWaterSprings, point.new{previousBorneG.x + 1, previousBorneG.y}, hashFct) then
 
               finalResult = finalResult + (tonumber(currentPoint.x) - tonumber(previousBorneG.x + 1))
-
+              -- Tag those squares
+              for x = previousBorneG.x+1, currentPoint.x  do
+                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+              end
               print("added value left only = ", (tonumber(currentPoint.x) - tonumber(previousBorneG.x + 1)))
               print("Result", finalResult)
 
               -- Add the path until the next water spring on this side
               finalResult = finalResult + (tonumber(newWaterSpring.x - 1) - tonumber(currentPoint.x))
-
-              print("added value right waterSpring = ", (tonumber(newWaterSpring.x - 1) - tonumber(currentPoint.x)))
-              print("Result", finalResult)
-
               -- Tag those squares
-              for x = previousBorneG.x+1, currentPoint.x  do
+              for x = currentPoint.x, newWaterSpring.x-1  do
                 set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
               end
+              print("added value right waterSpring = ", (tonumber(newWaterSpring.x - 1) - tonumber(currentPoint.x)))
+              print("Result", finalResult)
             end
           end
         end
@@ -407,13 +569,21 @@ local function partOne (inputFile)
 
     print("===========")
 
+    -- Debug function
+    if currentWaterSpring ~= nil then
+      draw30x30Square(currentWaterSpring, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
+    end
+
     io.write("PRESSED FOR NEXT TURN : ")
     io.flush()
     io.read()
 
   until currentWaterSpring == nil or currentWaterSpring.y > maxY or currentWaterSpring.y < minY or nbTurn > 100
 
-  -- TODO
+  -- Debug function
+  if firstPoint ~= nil then
+    draw30x30Square(firstPoint, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
+  end
 
   return finalResult;
 end
