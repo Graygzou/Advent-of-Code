@@ -13,6 +13,7 @@ require "helper"
 require "list"
 require "stack"
 require "point"
+require "set"
 
 -----------------------------------------------------
 -- Import all the days
@@ -53,7 +54,7 @@ local mains = {
   [14] = {day14.day14Main, ""},
   [15] = {day15.day15Main, "Day15_Beverage_Bandits/input.txt"},
   [16] = {day16.day16Main, "Day16_Chronal_Classification/input.txt"},
-  [17] = {day17.day17Main, "Day17_Reservoir_Research/input4.txt"},
+  [17] = {day17.day17Main, "Day17_Reservoir_Research/input5.txt"},
 }
 
 -- Retrieve input from the player
