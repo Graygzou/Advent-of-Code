@@ -124,7 +124,7 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function findPreviousBorder(currentPoint, y, clayPoints)
+function findPreviousBorder(currentPoint, y, clayPoints, waterPoints)
   local thresholdBorneG = nil
   local thresholdBorneD = nil
 
@@ -133,14 +133,14 @@ function findPreviousBorder(currentPoint, y, clayPoints)
 
   -- Find the left limit
   local x = currentPoint.x
-  while set.containsKey(clayPoints, point.new{x, y}, hashFct) do
+  while set.containsKey(clayPoints, point.new{x, y}, hashFct) or set.containsKey(waterPoints, point.new{x, y}, hashFct) do
     x = x - 1
   end
   thresholdBorneG = point.new{x+1, y}
 
   -- Find the right limit
   x = currentPoint.x
-  while set.containsKey(clayPoints, point.new{x, y}, hashFct) do
+  while set.containsKey(clayPoints, point.new{x, y}, hashFct) or set.containsKey(waterPoints, point.new{x, y}, hashFct) do
     x = x + 1
   end
   thresholdBorneD = point.new{x-1, y}
@@ -190,16 +190,18 @@ end
 local function partOne (inputFile)
   local finalResult = 0
 
-  -- for input / input0 (57) / input2 / input3
-  local firstPoint = point.new{500, 0}
-  -- for input1
+  -- for input / input0 (57) /-- input2 / input3
+  --local firstPoint = point.new{500, 0}
+  -- for input1 (26)
   --local firstPoint = point.new{9, 0}
-  -- for input4
+  -- for input4 (27)
   --local firstPoint = point.new{5, 0}
-  -- for input5 ()
-  local firstPoint = point.new{11, 0}
-  -- for input50 / 500
-  --local firstPoint = point.new{8, 0}
+  -- for input4invert (27)
+  --local firstPoint = point.new{11, 0}
+  -- for input5 (57) / 500 (237)
+  local firstPoint = point.new{8, 0}
+  -- for input5invert (57)
+  local firstPoint = point.new{6, 0}
 
   -- Using a (Hash)Set avoid to call list.contains every time which is heavier than an access with an set..
   local clayPoints = Set{}
@@ -309,8 +311,8 @@ local function partOne (inputFile)
       step0 = true
       currentPoint = currentWaterSpring
 
-      thresholdBorneG, _ = findBorder(point.new{currentWaterSpring.x, currentWaterSpring.y}, currentWaterSpring.y-1, clayPoints)
-      _, thresholdBorneD = findBorder(point.new{currentWaterSpring.x, currentWaterSpring.y}, currentWaterSpring.y-1, clayPoints)
+      thresholdBorneG, _ = findBorder(point.new{currentWaterSpring.x, currentWaterSpring.y}, currentWaterSpring.y-1, clayPoints, squaresWithWater)
+      _, thresholdBorneD = findBorder(point.new{currentWaterSpring.x, currentWaterSpring.y}, currentWaterSpring.y-1, clayPoints, squaresWithWater)
 
 
       print(point.toString(thresholdBorneG))
@@ -338,7 +340,7 @@ local function partOne (inputFile)
       -- Add the step 1) score
       finalResult = finalResult + tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y)
       -- Tag those new squares
-      for y = currentWaterSpring.y, currentPoint.y-1  do
+      for y = currentWaterSpring.y+1, currentPoint.y-1  do
         set.addKey(wetSquares, point.new{currentWaterSpring.x, y}, hashFct)
       end
       print("added value = ", tonumber(currentPoint.y-1) - tonumber(currentWaterSpring.y))
@@ -368,10 +370,10 @@ local function partOne (inputFile)
         -- Compute both side of the PREVIOUS floor
         -- Should ALWAYS give two int !
         if not step0 then
-          thresholdBorneG, _ = findPreviousBorder(previousBorneG, previousBorneG.y, clayPoints)
+          thresholdBorneG, _ = findPreviousBorder(previousBorneG, previousBorneG.y, clayPoints, squaresWithWater)
         end
         if not step0 then
-          _, thresholdBorneD = findPreviousBorder(previousBorneD, previousBorneD.y, clayPoints)
+          _, thresholdBorneD = findPreviousBorder(previousBorneD, previousBorneD.y, clayPoints, squaresWithWater)
         end
         step0 = false
 
@@ -397,9 +399,21 @@ local function partOne (inputFile)
         previousBorneG = borneG
         previousBorneD = borneD
 
+        -- Add one to the score if the current point is not a wet square or water square
+        if previousBorneG ~= nil and previousBorneD ~= nil then
+          if not set.containsKey(wetSquares, currentPoint, hashFct) and not set.containsKey(squaresWithWater, currentPoint, hashFct) then
+            finalResult = finalResult + 1
+            print("added value not wet = 1")
+            print("NEW RESULT", finalResult)
+
+            io.write("NOT WATERED SQUARE : ")
+            io.flush()
+            io.read()
+          end
+        end
         if set.containsKey(visitedWaterSprings, currentPoint, hashFct) then
           -- left side
-          if borneG ~= nil then
+          if borneG ~= nil and not set.containsKey(squaresWithWater, point.new{borneG.x+1, currentPoint.y}, hashFct) then
             finalResult = finalResult + (tonumber(currentPoint.x-1) - tonumber(borneG.x))
             -- Tag those squares
             for x = borneG.x+1, currentPoint.x do
@@ -409,7 +423,7 @@ local function partOne (inputFile)
             print("NEW RESULT", finalResult)
           end
           -- right side
-          if borneD ~= nil then
+          if borneD ~= nil and not set.containsKey(squaresWithWater, point.new{borneD.x-1, currentPoint.y}, hashFct) then
             finalResult = finalResult + (tonumber(borneD.x-1) - tonumber(currentPoint.x))
             -- Tag those squares
             for x = currentPoint.x, borneD.x-1  do
@@ -463,18 +477,30 @@ local function partOne (inputFile)
       io.read()
 
       print("=== STEP 3 ===")
-      -- Basically, if the current point is the starting water source..
-      if not set.containsKey(visitedWaterSprings, currentPoint, hashFct) and not set.containsKey(wetSquares, currentPoint, hashFct) then
-        finalResult = finalResult + 1
-      end
 
-      -- Add the score if both side are empty (if needed)
+      -- Add one to the score if both side are empty and line is just reached
       if previousBorneG == nil and previousBorneD == nil then
+        -- Basically, if the current point is the starting water source..
+        print(set.containsKey(visitedWaterSprings, currentPoint, hashFct))
+        print(set.containsKey(squaresWithWater, currentPoint, hashFct))
+        print(set.containsKey(wetSquares, currentPoint, hashFct))
+        if set.containsKey(visitedWaterSprings, currentPoint, hashFct) and
+          (not set.containsKey(squaresWithWater, currentPoint, hashFct) or not set.containsKey(wetSquares, currentPoint, hashFct)) and
+          (not set.containsKey(squaresWithWater, point.new{currentPoint.x-1, currentPoint.y}, hashFct)) and (not set.containsKey(squaresWithWater, point.new{currentPoint.x+1, currentPoint.y}, hashFct)) then
+          print("added value first source = 1")
+          print("NEW RESULT", finalResult)
+          finalResult = finalResult + 1
+
+          io.write("START WATER SOURCE : ")
+          io.flush()
+          io.read()
+        end
+
         if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1}, hashFct) then
           -- add the left side to the score
           finalResult = finalResult + (tonumber(currentPoint.x + 1) - tonumber(thresholdBorneG.x - 1)) - 2
           -- Tag those new squares
-          for x = thresholdBorneG.x-1, currentPoint.x+1  do
+          for x = thresholdBorneG.x-1, currentPoint.x  do
             set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
           end
           print("added value both side (left) = ", (tonumber(currentPoint.x + 1) - tonumber(thresholdBorneG.x - 1)) - 2)
@@ -485,7 +511,7 @@ local function partOne (inputFile)
           -- add the right side to the score
           finalResult = finalResult + (tonumber(thresholdBorneD.x + 1) - tonumber(currentPoint.x - 1)) - 2
           -- Tag those new squares
-          for x = thresholdBorneD.x+1, currentPoint.x-1  do
+          for x = currentPoint.x+1, thresholdBorneD.x do
             set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
           end
           print("added value both side (right) = ", (tonumber(thresholdBorneD.x + 1) - tonumber(currentPoint.x - 1)) - 2)
