@@ -58,25 +58,34 @@ end
 ------------------------------------------------------------------------
 function draw30x30Square(currentPoint, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
 
+  local finalScore = 0
+
   local string = ""
   for y = currentPoint.y-30, currentPoint.y+30 do
     for x = currentPoint.x-45, currentPoint.x+45 do
       local currentPoint = point.new{x, y}
 
-      if set.containsKey(visitedWaterSprings, currentPoint, hashFct) then
-        string = string .. "+"
+      --if set.containsKey(wetSquares, currentPoint, hashFct) and set.containsKey(squaresWithWater, currentPoint, hashFct) then
+      --  string = string .. "X"
+      --else
+      if set.containsKey(wetSquares, currentPoint, hashFct) then
+        string = string .. "|"
+        finalScore = finalScore + 1
       elseif set.containsKey(squaresWithWater, currentPoint, hashFct) then
         string = string .. "~"
+        finalScore = finalScore + 1
+      elseif set.containsKey(visitedWaterSprings, currentPoint, hashFct) then
+        string = string .. "+"
       elseif set.containsKey(clayPoints, currentPoint, hashFct) then
         string = string .. "#"
-      elseif set.containsKey(wetSquares, currentPoint, hashFct) then
-        string = string .. "|"
       else
         string = string .. "."
       end
     end
     string = string .. "\n"
   end
+
+  print("FINAL SCORE 2", finalScore)
 
   print(string)
 end
@@ -129,7 +138,7 @@ function findPreviousBorder(currentPoint, y, clayPoints, waterPoints)
   local thresholdBorneD = nil
 
   --print(point.toString(currentPoint))
-  print(y)
+  --print(y)
 
   -- Find the left limit
   local x = currentPoint.x
@@ -187,28 +196,14 @@ end
 -- Return
 --    the final result for the part 1.
 ------------------------------------------------------------------------
-local function partOne (inputFile)
+local function partOne (inputFile, initialPoint)
   local finalResult = 0
 
   -- for input / input0 (57) /-- input2 / input3
-  --local firstPoint = point.new{500, 0}
-  -- for input1 (26)
-  --local firstPoint = point.new{9, 0}
-  -- for input4 (27) => (now 122)
-  --local firstPoint = point.new{5, 0}
-  -- for input4invert (27)
-  --local firstPoint = point.new{11, 0}
-  -- for input5 (57/61) / input6 (237/241)
-  --local firstPoint = point.new{8, 0}
-  --local firstPoint = point.new{8, -5}
-  -- for input5invert (57)
-  --local firstPoint = point.new{6, 0}
-  -- for  input8 (219) / input7 (231)
-  --local firstPoint = point.new{12, 0}
-  -- for inputfillTopBug (206)
-  --local firstPoint = point.new{0, 0}
-  -- for inputfillTopBugInvert (206)
-  --local firstPoint = point.new{15, 0}
+  local firstPoint = point.new{500, 0}
+  if initialPoint ~= nil then
+    firstPoint = initialPoint
+  end
 
   -- Using a (Hash)Set avoid to call list.contains every time which is heavier than an access with an set..
   local clayPoints = Set{}
@@ -276,7 +271,7 @@ local function partOne (inputFile)
   -- Add another for the test
   --stack.pushleft(waterSprings, point.new{8, 0})
   --stack.pushleft(waterSprings, point.new{7, 0})
-  stack.pushleft(waterSprings, point.new{9, 0})
+  --stack.pushleft(waterSprings, point.new{9, 0})
 
   -- DEBUG
   keys = set.getValues(clayPoints)
@@ -302,7 +297,7 @@ local function partOne (inputFile)
 
   local nbTurn = 0
   repeat
-    print("current water spring = ", point.toString(currentWaterSpring))
+    --print("current water spring = ", point.toString(currentWaterSpring))
 
     local currentX = currentWaterSpring.x
     local currentY = currentWaterSpring.y
@@ -363,7 +358,7 @@ local function partOne (inputFile)
       io.read()
     --end
 
-    print("current point =", point.toString(currentPoint))
+    --print("current point =", point.toString(currentPoint))
 
     local previousBorneG = currentPoint
     local previousBorneD = currentPoint
@@ -377,7 +372,7 @@ local function partOne (inputFile)
         local borneG = nil
         local borneD = nil
 
-        print("final point =", point.toString(currentPoint))
+        --print("final point =", point.toString(currentPoint))
 
         -- Compute both side of the PREVIOUS floor
         -- Should ALWAYS give two int !
@@ -389,8 +384,8 @@ local function partOne (inputFile)
         end
         step0 = false
 
-        print("thresholdBorneG = ", point.toString(thresholdBorneG))
-        print("thresholdBorneD = ", point.toString(thresholdBorneD))
+        --print("thresholdBorneG = ", point.toString(thresholdBorneG))
+        --print("thresholdBorneD = ", point.toString(thresholdBorneD))
 
         -- Lift up one step
         currentPoint.y =  currentPoint.y - 1
@@ -402,10 +397,10 @@ local function partOne (inputFile)
         borneG, borneD = fillLine(currentPoint, clayPoints, thresholdBorneG, thresholdBorneD)
 
         if borneG ~= nil then
-          print("borneG", point.toString(borneG))
+          --print("borneG", point.toString(borneG))
         end
         if borneD ~= nil then
-          print("borneD", point.toString(borneD))
+          --print("borneD", point.toString(borneD))
         end
 
         previousBorneG = borneG
@@ -433,12 +428,12 @@ local function partOne (inputFile)
         if existWetSquare then
           -- Remove the surplus of wetSquare
           if nbWetSquare > 1 then
-            finalResult = finalResult - (nbWetSquare - 1)
-            print("removed extra wetSquare = ", nbWetSquare-1)
+            --finalResult = finalResult - (nbWetSquare - 1)
+            --print("removed extra wetSquare = ", nbWetSquare-1)
 
-            io.write("PRESSED FOR DEBUG : ")
-            io.flush()
-            io.read()
+            --io.write("PRESSED FOR DEBUG : ")
+            --io.flush()
+            --io.read()
           end
 
           -- Add one to the score if the current point is not a wet square or water square
@@ -456,7 +451,7 @@ local function partOne (inputFile)
             end
             if not found then
               finalResult = finalResult + 1
-              print("added value not wet = 1")
+              print("added value not wet = +1")
               print("NEW RESULT", finalResult)
 
               io.write("NOT WATERED SQUARE : ")
@@ -465,49 +460,68 @@ local function partOne (inputFile)
             end
           end
           if set.containsKey(visitedWaterSprings, currentPoint, hashFct) then
-            -- left side
-            if borneG ~= nil and not set.containsKey(squaresWithWater, point.new{borneG.x+1, currentPoint.y}, hashFct) then
-              finalResult = finalResult + (tonumber(currentPoint.x-1) - tonumber(borneG.x))
-              -- Tag those squares
-              for x = borneG.x+1, currentPoint.x do
-                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+            -- Center + Left side
+            -- Iterate on all the square and add them individually
+            local tempRes = 0
+            for x = thresholdBorneG.x+1, currentPoint.x do
+              if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                tempRes = tempRes + 1
               end
-              print("added left side spring = ", (tonumber(currentPoint.x-1) - tonumber(borneG.x)))
-              print("NEW RESULT", finalResult)
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
             end
-            -- right side
-            if borneD ~= nil and not set.containsKey(squaresWithWater, point.new{borneD.x-1, currentPoint.y}, hashFct) then
-              finalResult = finalResult + (tonumber(borneD.x-1) - tonumber(currentPoint.x))
-              -- Tag those squares
-              for x = currentPoint.x, borneD.x-1  do
-                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+            finalResult = finalResult + tempRes
+            print("** added value left side = ", tempRes)
+            print("NEW RESULT", finalResult)
+
+            -- Right side
+            -- Iterate on all the square and add them individually
+            local tempRes = 0
+            for x = currentPoint.x+1, thresholdBorneD.x-1 do
+              if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                tempRes = tempRes + 1
               end
-              print("added right side spring = ", (tonumber(borneD.x-1) - tonumber(currentPoint.x)))
-              print("NEW RESULT", finalResult)
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
             end
+            finalResult = finalResult + tempRes
+            print("** added value right side = ", tempRes)
+            print("NEW RESULT", finalResult)
           elseif not set.containsKey(squaresWithWater, currentPoint, hashFct) then
             -- Add the step 2) score
             if borneG ~= nil and borneD ~= nil then
               -- MAKE SURE WE DIDN'T ALREADY COUNT THEM
               -- left side
-              if not set.containsKey(squaresWithWater, point.new{borneG.x + 1, currentPoint.y}, hashFct) then
-                -- The -2 mean we convert a dry square into a water square AND from the difference
-                finalResult = finalResult + (tonumber(currentPoint.x) - tonumber(borneG.x)) - 1
-                print("added left side = ", (tonumber(currentPoint.x) - tonumber(borneG.x)) - 1)
-                print("NEW RESULT", finalResult)
-              end
-              -- right side
-              if not set.containsKey(squaresWithWater, point.new{borneD.x - 1, currentPoint.y}, hashFct) then
-                -- The -2 mean we convert a dry square into a water square AND from the difference
-                finalResult = finalResult + (tonumber(borneD.x) - tonumber(currentPoint.x)) - 1
-                print("added right side = ", (tonumber(borneD.x) - tonumber(currentPoint.x)) - 1)
-                print("NEW RESULT", finalResult)
-              end
-
-              -- Tag those squares
-              for x = borneG.x+1, borneD.x-1  do
+              -- Iterate on all the square and add them individually
+              local tempRes = 0
+              for x = borneG.x+1, currentPoint.x-1 do
+                if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                   not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                   not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                  tempRes = tempRes + 1
+                end
                 set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
               end
+              finalResult = finalResult + tempRes
+              print("@@ added value left side = ", tempRes)
+              print("NEW RESULT", finalResult)
+
+              -- right side
+              -- Iterate on all the square and add them individually
+              local tempRes = 0
+              for x = currentPoint.x, borneD.x-1 do
+                if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                   not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                   not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                  tempRes = tempRes + 1
+                end
+                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+              end
+              finalResult = finalResult + tempRes
+              print("@@ added value right side = ", tempRes)
+              print("NEW RESULT", finalResult)
             end
           else
             print(currentPoint.y)
@@ -530,13 +544,13 @@ local function partOne (inputFile)
           end
           currentPoint = point.new{currentX-1, currentPoint.y+1}
 
-          print("NEW POINT =", point.toString(currentPoint))
+          --print("NEW POINT =", point.toString(currentPoint))
 
           previousBorneG = currentPoint
           previousBorneD = currentPoint
         end
 
-        print("NEW RESULT", finalResult)
+        --print("NEW RESULT", finalResult)
         --io.write("PRESSED FOR DEBUG : ")
         --io.flush()
         --io.read()
@@ -559,7 +573,7 @@ local function partOne (inputFile)
           end
           if not found then
             finalResult = finalResult + 1
-            print("added value not wet = 1")
+            print("added value not wet = +1")
             print("NEW RESULT", finalResult)
 
             io.write("NOT WATERED SQUARE : ")
@@ -567,28 +581,37 @@ local function partOne (inputFile)
             io.read()
           end
 
-          if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1}, hashFct) then
-            -- add the left side to the score
-            finalResult = finalResult + (tonumber(currentPoint.x + 1) - tonumber(thresholdBorneG.x - 1)) - 2
-            -- Tag those new squares
-            for x = thresholdBorneG.x-1, currentPoint.x  do
-              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+          --if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneG.x - 1, thresholdBorneG.y - 1}, hashFct) then
+          -- Center + left side to the score
+          -- Iterate on all the square and add them individually
+          local tempRes = 0
+          for x = thresholdBorneG.x, currentPoint.x do
+            if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+               not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+               not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+              tempRes = tempRes + 1
             end
-            print("Add value both side (left) = ", (tonumber(currentPoint.x + 1) - tonumber(thresholdBorneG.x - 1)) - 2)
-            print("new result = ", finalResult)
-
+            set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
           end
-          if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneD.x + 1, thresholdBorneD.y - 1}, hashFct) then
-            -- add the right side to the score
-            finalResult = finalResult + (tonumber(thresholdBorneD.x + 1) - tonumber(currentPoint.x - 1)) - 2
-            -- Tag those new squares
-            for x = currentPoint.x+1, thresholdBorneD.x do
-              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+          finalResult = finalResult + tempRes
+          print("// added value both side (left) = ", tempRes)
+          print("NEW RESULT", finalResult)
+
+          -- add the right side to the score
+          -- Iterate on all the square and add them individually
+          local tempRes = 0
+          for x = currentPoint.x+1, thresholdBorneD.x do
+            if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+               not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+               not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+              tempRes = tempRes + 1
             end
-            print("add value both side (right) = ", (tonumber(thresholdBorneD.x + 1) - tonumber(currentPoint.x - 1)) - 2)
-            print("new result = ", finalResult)
-
+            set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
           end
+          finalResult = finalResult + tempRes
+          print("// added value both side (right) = ", tempRes)
+          print("NEW RESULT", finalResult)
+
         end
 
         -- Step 3) a)
@@ -604,40 +627,36 @@ local function partOne (inputFile)
 
           -- Test if we should score when the water will only flow on the left (G)
           if previousBorneD ~= nil then
-            -- Add the score that come from the right until the previousBorneD, IF not already added before
-            if not set.containsKey(squaresWithWater, point.new{currentPoint.x+1, currentPoint.y}, hashFct) then
-              finalResult = finalResult + (tonumber(previousBorneD.x - 1) - tonumber(currentPoint.x))
-              -- Tag those new squares
-              for x = currentPoint.x, previousBorneD.x-1 do
-                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+            local tempRes = 0
+            for x = currentPoint.x+1, previousBorneD.x-1 do
+              --print(point.toString(point.new{x, currentPoint.y}))
+              --print(set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct))
+              if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                tempRes = tempRes + 1
+                --print("+1")
               end
-              print("added value right only = ", (tonumber(previousBorneD.x - 1) - tonumber(currentPoint.x)))
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
             end
-            -- Add the path until the next water spring on the left side, IF not already added before
-            if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneG.x-1, thresholdBorneG.y-1}, hashFct) then
-              if not set.containsKey(squaresWithWater, point.new{currentPoint.x-1, currentPoint.y}, hashFct) then
-                finalResult = finalResult + (tonumber(currentPoint.x) - tonumber(newWaterSpring.x + 1))
-                -- Tag those new squares
-                for x = newWaterSpring.x+1, currentPoint.x  do
-                  set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
-                end
-                print("added value left only = ", (tonumber(currentPoint.x) - tonumber(newWaterSpring.x + 1)))
-              end
-            else
-              -- Iterate on all the square and add them individually
-              local tempRes = 0
-              for x = thresholdBorneG.x, currentPoint.x-1 do
-                if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
-                   not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
-                  tempRes = tempRes + 1
-                end
-                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
-              end
-              finalResult = finalResult + tempRes
-              print("added value left only (existing watered squares) = ", tempRes)
+            finalResult = finalResult + tempRes
+            print("== added value right only = ", tempRes)
+            print("NEW RESULT", finalResult)
 
+            -- Center + Left side until next water spring, IF not already added before
+            -- Iterate on all the square and add them individually
+            local tempRes = 0
+            for x = thresholdBorneG.x, currentPoint.x do
+              if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                tempRes = tempRes + 1
+              end
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
             end
-            print("Result", finalResult)
+            finalResult = finalResult + tempRes
+            print("== added value left only = ", tempRes)
+            print("NEW RESULT", finalResult)
           end
         end
 
@@ -654,41 +673,41 @@ local function partOne (inputFile)
 
           -- Test if we should score when the water will only flow on the right (D)
           if previousBorneG ~= nil then
-            -- Add the score that come from the left until the previousBorneG, IF not already added before
-            if not set.containsKey(squaresWithWater, point.new{currentPoint.x-1, currentPoint.y}, hashFct) then
-              finalResult = finalResult + (tonumber(currentPoint.x) - tonumber(previousBorneG.x + 1))
-              -- Tag those squares
-              for x = previousBorneG.x+1, currentPoint.x do
-                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
-              end
-              print("added value left only = ", (tonumber(currentPoint.x) - tonumber(previousBorneG.x + 1)))
-              print("Result", finalResult)
-            end
 
-            -- Add the path until the next water spring on the right side, IF not already added before
-            if not set.containsKey(visitedWaterSprings, point.new{thresholdBorneD.x+1, thresholdBorneD.y-1}, hashFct) then
-              --print(point.toString(point.new{currentPoint.x+1, currentPoint.y}))
-              if not set.containsKey(squaresWithWater, point.new{currentPoint.x+1, currentPoint.y}, hashFct) then
-                finalResult = finalResult + (tonumber(newWaterSpring.x - 1) - tonumber(currentPoint.x))
-                -- Tag those squares
-                for x = currentPoint.x, newWaterSpring.x-1  do
-                  set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
-                end
-                print("added value right only = ", (tonumber(newWaterSpring.x - 1) - tonumber(currentPoint.x)))
-                print("Result", finalResult)
+            -- Left side
+            local tempRes = 0
+            for x = previousBorneG.x+1, currentPoint.x-1 do
+              --print(point.toString(point.new{x, currentPoint.y}))
+              --print(set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct))
+              if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                tempRes = tempRes + 1
+                print("+1")
               end
-            else
-              -- Iterate on all the square and add them individually
-              local tempRes = 0
-              for x = currentPoint.x+1, thresholdBorneD.x do
-                if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) then
-                  tempRes = tempRes + 1
-                end
-                set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
-              end
-              finalResult = finalResult + tempRes
-              print("added value right only (existing watered squares) = ", tempRes)
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
             end
+            finalResult = finalResult + tempRes
+            print("-- added value left only = ", tempRes)
+            print("NEW RESULT", finalResult)
+
+            -- Center + Right side until new water spring, IF not already added before
+            -- Iterate on all the square and add them individually
+            local tempRes = 0
+            for x = currentPoint.x, thresholdBorneD.x do
+              --print(point.toString(point.new{x, currentPoint.y}))
+              --print(set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct))
+              if not set.containsKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(wetSquares, point.new{x, currentPoint.y}, hashFct) and
+                 not set.containsKey(visitedWaterSprings, point.new{x, currentPoint.y}, hashFct) then
+                tempRes = tempRes + 1
+                --print("+1")
+              end
+              set.addKey(squaresWithWater, point.new{x, currentPoint.y}, hashFct)
+            end
+            finalResult = finalResult + tempRes
+            print("-- added value right only = ", tempRes)
+            print("NEW RESULT", finalResult)
           end
         end
 
@@ -705,10 +724,15 @@ local function partOne (inputFile)
     end
 
     -- Retrieve the next water spring
-    currentWaterSpring = stack.popright(waterSprings)
+    -- MAKE SURE WE RETRIEVE ALL THE WATER SPRING.
+    repeat
+      currentWaterSpring = stack.popright(waterSprings)
+    until currentWaterSpring == nil or currentWaterSpring ~= nil and (currentWaterSpring.y <= maxY or currentWaterSpring.y >= minY)
 
     if currentWaterSpring ~= nil then
       finalResult = finalResult + 1
+      print("ADD SCORE BECAUSE new spring water = +1")
+      print("NEW RESULT", finalResult)
     end
 
     nbTurn = nbTurn + 1
@@ -716,15 +740,15 @@ local function partOne (inputFile)
     print("===========")
 
     -- Debug function
-    if currentWaterSpring ~= nil then
-      draw30x30Square(currentPoint, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
-    end
+    --if currentWaterSpring ~= nil then
+    --  draw30x30Square(currentPoint, clayPoints, visitedWaterSprings, squaresWithWater, wetSquares)
+    --end
 
     io.write("PRESSED FOR NEXT TURN : ")
     io.flush()
     io.read()
 
-  until currentWaterSpring == nil or currentWaterSpring.y > maxY or currentWaterSpring.y < minY or nbTurn > 100000
+  until currentWaterSpring == nil or nbTurn > 1000000
 
   -- Debug function
   if firstPoint ~= nil then
@@ -752,12 +776,17 @@ end
 --#################################################################
 -- Main - Main function
 --#################################################################
-function day17Main (filename)
+function day17Main (filename, initialPoint)
 
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
-  local partOneResult = partOne(inputFile)
+  local partOneResult = nil
+  if initialPoint ~= nil then
+    partOneResult = partOne(inputFile, initialPoint)
+  else
+    partOneResult = partOne(inputFile)
+  end
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
@@ -770,7 +799,42 @@ function day17Main (filename)
   print("Result part one :", partOneResult);
   print("Result part two :", partTwoResult);
 
+  return partOneResult
 end
+----------------------------------------------------
+-- Tests
+----------------------------------------------------
+tests = {}
+
+---[[
+table.insert(tests, day17Main("Day17_Reservoir_Research/input0.txt", point.new{500, 0}) == 57)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input1.txt", point.new{9, 0}) == 26)
+
+-- table.insert(tests, day17Main("Day17_Reservoir_Research/input4.txt", point.new{5, 0}) == 27) Old one
+table.insert(tests, day17Main("Day17_Reservoir_Research/input4.txt", point.new{5, 0}) == 122)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input4invert.txt", point.new{11, 0}) == 27)
+
+table.insert(tests, day17Main("Day17_Reservoir_Research/input5.txt", point.new{8, 0}) == 57)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input5.txt", point.new{8, -5}) == 61)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input6.txt", point.new{8, 0}) == 237)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input6.txt", point.new{8, -5}) == 241)
+
+table.insert(tests, day17Main("Day17_Reservoir_Research/input6.txt", point.new{8, -5}) == 241)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input5invert.txt", point.new{6, 0}) == 57)
+
+table.insert(tests, day17Main("Day17_Reservoir_Research/input7.txt", point.new{12, 0}) == 231)
+table.insert(tests, day17Main("Day17_Reservoir_Research/input8.txt", point.new{12, 0}) == 219)
+
+table.insert(tests, day17Main("Day17_Reservoir_Research/inputfillTopBug.txt", point.new{0, 0}) == 206)
+table.insert(tests, day17Main("Day17_Reservoir_Research/inputfillTopBugInvert.txt", point.new{15, 0}) == 206)
+
+table.insert(tests, day17Main("Day17_Reservoir_Research/inputInceptionBug.txt", point.new{6, 0}) == 132)
+table.insert(tests, day17Main("Day17_Reservoir_Research/inputInceptionBug2.txt", point.new{6, 0}) == 237)
+---]]
+for i = 1, #tests do
+  print("Test " .. i, tests[i])
+end
+
 
 --#################################################################
 -- Package end
