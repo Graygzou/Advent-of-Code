@@ -32,6 +32,9 @@ require "Day14_Chocolate_Charts.day14"
 require "Day15_Beverage_Bandits.day15"
 require "Day16_Chronal_Classification.day16"
 require "Day17_Reservoir_Research.day17"
+require "Day18_Settlers _of_The_North_Pole.day18"
+--require "Day17_Reservoir_Research.day19"
+--require "Day17_Reservoir_Research.day20"
 
 -- Variables
 local filename = "";
@@ -55,6 +58,7 @@ local mains = {
   [15] = {day15.day15Main, "Day15_Beverage_Bandits/input.txt"},
   [16] = {day16.day16Main, "Day16_Chronal_Classification/input.txt"},
   [17] = {day17.day17Main, "Day17_Reservoir_Research/input.txt"},
+  [18] = {day18.day18Main, "Day18_Settlers _of_The_North_Pole/input.txt"},
 }
 
 -- Retrieve input from the player

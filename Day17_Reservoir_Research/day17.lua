@@ -229,7 +229,7 @@ local function partOne (inputFile, initialPoint)
 
   local maxY = nil
   local minY = nil
-  
+
   local fileLines = helper.saveLinesToArray(inputFile);
 
   for linesIndex = 1, #fileLines do
@@ -696,10 +696,7 @@ end
 -- Tests
 ----------------------------------------------------
 tests = {}
-table.insert(tests, day17Main("Day17_Reservoir_Research/OverflowCounted.txt", point.new{10, 0}) == 57)
-
----[[
-tests = {}
+--[[
 table.insert(tests, day17Main("Day17_Reservoir_Research/input0.txt", point.new{500, 0}) == 57)
 table.insert(tests, day17Main("Day17_Reservoir_Research/input1.txt", point.new{9, 0}) == 26)
 
@@ -719,13 +716,15 @@ table.insert(tests, day17Main("Day17_Reservoir_Research/inputfillTopBugInvert.tx
 table.insert(tests, day17Main("Day17_Reservoir_Research/inputInceptionBug.txt", point.new{6, 0}) == 132)
 table.insert(tests, day17Main("Day17_Reservoir_Research/inputInceptionBug2.txt", point.new{6, 0}) == 237)
 
--- Wrong
+table.insert(tests, day17Main("Day17_Reservoir_Research/OverflowCounted.txt", point.new{10, 0}) == 57)
+
+-- Wrong now
 table.insert(tests, day17Main("Day17_Reservoir_Research/input5.txt", point.new{8, 0}) == 57)
 table.insert(tests, day17Main("Day17_Reservoir_Research/input6.txt", point.new{8, 0}) == 237)
 table.insert(tests, day17Main("Day17_Reservoir_Research/input5invert.txt", point.new{6, 0}) == 57)
 table.insert(tests, day17Main("Day17_Reservoir_Research/input7.txt", point.new{12, 0}) == 231)
 table.insert(tests, day17Main("Day17_Reservoir_Research/input8.txt", point.new{12, 0}) == 219)
----]]
+--]]
 for i = 1, #tests do
   print("Test " .. i, tests[i])
 end
