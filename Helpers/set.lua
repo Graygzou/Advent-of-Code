@@ -59,6 +59,19 @@ end
 -----------------------------------------------------
 --
 -----------------------------------------------------
+function addKey(set, key, value, hash)
+  if hash == nil then
+    hash = function (x) return x end
+  end
+  -- Hashed the key in order to be added
+  local keyHashed = hash(key)
+  -- add the hashedKey to the set
+  set[keyHashed] = {key = key, value = value}
+end
+
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function containsKey(set, key, hash)
   if hash == nil then
     hash = function (x) return x end
