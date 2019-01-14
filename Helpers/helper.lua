@@ -84,10 +84,10 @@ end
 --     an array of every line of the doc
 --------------------------------------------------------------------------
 function saveLinesToArray(inputFile)
-  days = {}
+  local days = {}
 
   -- Read the entire file at once.
-  lines = inputFile:read("*all");
+  local lines = inputFile:read("*a");
 
   -- Post processing : parse the string and save them in a Set.
   local lines = string.gsub(lines, ".-[\n]", function(val)
@@ -107,7 +107,7 @@ function decimalToBinary (value)
     -- Concat the next value to the binary result
     binary = (temp % 2) .. binary
     -- Update the value
-    temp = (temp // 2)
+    temp = math.floor(temp/2)
   until temp <= 0
   -- Complete if necessary with zeros
   local currentLength = #binary
@@ -121,13 +121,13 @@ end
 ---------------------------------------------
 if PRINT_TEST then
   print("== Tests decimalToBinary function ==")
-  print(decimalToBinary(0) == "0000")
-  print(decimalToBinary(1) == "0001")
-  print(decimalToBinary(3) == "0011")
-  print(decimalToBinary(5) == "0101")
-  print(decimalToBinary(8) == "1000")
-  print(decimalToBinary(11) == "1011")
-  print(decimalToBinary(15) == "1111")
+  assert(decimalToBinary(0) == "0000")
+  assert(decimalToBinary(1) == "0001")
+  assert(decimalToBinary(3) == "0011")
+  assert(decimalToBinary(5) == "0101")
+  assert(decimalToBinary(8) == "1000")
+  assert(decimalToBinary(11) == "1011")
+  assert(decimalToBinary(15) == "1111")
 end
 
 --------------------------------------------------------------------------
@@ -148,13 +148,13 @@ end
 ---------------------------------------------
 if PRINT_TEST then
   print("== Tests binaryToDecimal function ==")
-  print(binaryToDecimal("0000") == 0)
-  print(binaryToDecimal("0001") == 1)
-  print(binaryToDecimal("0011") == 3)
-  print(binaryToDecimal("0101") == 5)
-  print(binaryToDecimal("1000") == 8)
-  print(binaryToDecimal("1011") == 11)
-  print(binaryToDecimal("1111") == 15)
+  assert(binaryToDecimal("0000") == 0)
+  assert(binaryToDecimal("0001") == 1)
+  assert(binaryToDecimal("0011") == 3)
+  assert(binaryToDecimal("0101") == 5)
+  assert(binaryToDecimal("1000") == 8)
+  assert(binaryToDecimal("1011") == 11)
+  assert(binaryToDecimal("1111") == 15)
 end
 
 ---------------------------------------------
@@ -186,10 +186,10 @@ end
 ---------------------------------------------
 if PRINT_TEST then
   print("== Tests findAndReplaceString function ==")
-  print(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....!###..!###")
-  print(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
-  print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
-  print(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
+  assert(findAndReplaceString("#..#.#..##......###...###", "%.%.%.##", 5, "#") == "#..#.#..##.....!###..!###")
+  assert(findAndReplaceString("...#..#.#..##......###...###...........", "%.%.#%.%.", 5, "!") == "...!..#.#..##......###...###...........")
+  assert(findAndReplaceString("...#...#....#.....#..#..#..#...........", "%.%.#%.%.", 5, "!") == "...!...!....!.....!..!..!..!...........")
+  assert(findAndReplaceString("...#...#....#.....#..#..#..#...........", "#####", 5, "!") == "...#...#....#.....#..#..#..#...........")
 end
 
 
@@ -217,12 +217,12 @@ end
 ---------------------------------------------
 if PRINT_TEST then
   print("== Tests findNextSymbolInString function for list ==")
-  print(findNextSymbolInString("#######", 0, 7, {"G", "E"}) == nil)
-  print(findNextSymbolInString("#.#.#G#", 0, 7, {"G", "E"}) == 6)
-  print(findNextSymbolInString("#...EG#", 0, 7, {"G", "E"}) == 5)
-  print(findNextSymbolInString("#...GG#", 0, 7, {"G", "E"}) == 5)
-  print(findNextSymbolInString("#...GE#", 0, 7, {"G", "E"}) == 5)
-  print(findNextSymbolInString("#...FE#", 0, 7, {"G", "E"}) == 6)
+  assert(findNextSymbolInString("#######", 0, 7, {"G", "E"}) == nil)
+  assert(findNextSymbolInString("#.#.#G#", 0, 7, {"G", "E"}) == 6)
+  assert(findNextSymbolInString("#...EG#", 0, 7, {"G", "E"}) == 5)
+  assert(findNextSymbolInString("#...GG#", 0, 7, {"G", "E"}) == 5)
+  assert(findNextSymbolInString("#...GE#", 0, 7, {"G", "E"}) == 5)
+  assert(findNextSymbolInString("#...FE#", 0, 7, {"G", "E"}) == 6)
 end
 
 if PRINT_TEST then

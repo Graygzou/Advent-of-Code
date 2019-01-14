@@ -78,7 +78,7 @@ function numberToDigitsArray(number)
     table.insert(digitsArray, digitsLeft % 10)
 
     -- Update the digitLeft to treat
-    digitsLeft = digitsLeft // 10
+    digitsLeft = math.floor(digitsLeft / 10)
   until digitsLeft == 0
 
   return digitsArray

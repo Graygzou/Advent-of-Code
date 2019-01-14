@@ -33,7 +33,7 @@ require "Day15_Beverage_Bandits.day15"
 require "Day16_Chronal_Classification.day16"
 require "Day17_Reservoir_Research.day17"
 require "Day18_Settlers _of_The_North_Pole.day18"
---require "Day17_Reservoir_Research.day19"
+require "Day19_Go_With_The_Flow.day19"
 --require "Day17_Reservoir_Research.day20"
 
 -- Variables
@@ -59,23 +59,29 @@ local mains = {
   [16] = {day16.day16Main, "Day16_Chronal_Classification/input.txt"},
   [17] = {day17.day17Main, "Day17_Reservoir_Research/input.txt"},
   [18] = {day18.day18Main, "Day18_Settlers _of_The_North_Pole/input.txt"},
+  [19] = {day19.day19Main, "Day19_Go_With_The_Flow/input.txt"},
 }
 
 -- Retrieve input from the player
-repeat
-  io.write("Select the days you want to execute : ")
-  io.flush()
-  answer = io.read()
-until tonumber(answer) ~= nil and tonumber(answer) > 0 and mains[tonumber(answer)][1] ~= nil
+--repeat
+  --io.write("Select the days you want to execute : ")
+  --io.flush()
+  --answer = io.read()
+--until tonumber(answer) ~= nil and tonumber(answer) > 0 and mains[tonumber(answer)][1] ~= nil
+if tonumber(arg[1]) ~= nil then
+  local answer = tonumber(arg[1])
 
--- Call the main function
-local mainFunction = mains[tonumber(answer)][1]
-local inputFile = mains[tonumber(answer)][2]
+  -- Call the main function
+  local mainFunction = mains[tonumber(answer)][1]
+  local inputFile = mains[tonumber(answer)][2]
 
-print("========================================================")
-print("Launch day " .. tonumber(answer) .. " with the file : " .. inputFile)
-print("========================================================")
+  print("========================================================")
+  print("Launch day " .. tonumber(answer) .. " with the file : " .. inputFile)
+  print("========================================================")
 
-if (mainFunction) then
-  mainFunction(inputFile);
+  if (mainFunction) then
+    mainFunction(inputFile);
+  end
+else
+  print("Error. Please provide the day number as first argument.")
 end

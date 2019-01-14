@@ -284,7 +284,7 @@ local function partTwo (inputFile, nbMinutesMax)
   until currentTurn >= nbMinutesMax or found
 
   local rangeLeft = nbMinutesMax - currentTurn
-  local numberOfFitInt = rangeLeft // loopNumber
+  local numberOfFitInt = math.floor(rangeLeft / loopNumber)
   local numberOfFitRest = rangeLeft -  (loopNumber * numberOfFitInt)
 
   return scores[startNumberLoop + numberOfFitRest]

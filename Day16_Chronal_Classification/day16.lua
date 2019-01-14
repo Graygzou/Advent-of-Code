@@ -139,18 +139,18 @@ end
 ------------------------------------------------------------------------
 if PRINT_TEST then
   print("== Tests bitwiseOp function with AND ==")
-  print(bitwiseOp("1111", "1111", function (a, b) return a & b; end) == "1111")
-  print(bitwiseOp("0101", "0010", function (a, b) return a & b; end) == "0000")
-  print(bitwiseOp("0101", "0011", function (a, b) return a & b; end) == "0001")
-  print(bitwiseOp("0011", "0010", function (a, b) return a & b; end) == "0010")
-  print(bitwiseOp("0110", "1011", function (a, b) return a & b; end) == "0010")
-  print(bitwiseOp("0110", "0001", function (a, b) return a & b; end) == "0000")
+  assert(bitwiseOp("1111", "1111", function (a, b) return bit32.band(a, b); end) == "1111")
+  assert(bitwiseOp("0101", "0010", function (a, b) return bit32.band(a, b); end) == "0000")
+  assert(bitwiseOp("0101", "0011", function (a, b) return bit32.band(a, b); end) == "0001")
+  assert(bitwiseOp("0011", "0010", function (a, b) return bit32.band(a, b); end) == "0010")
+  assert(bitwiseOp("0110", "1011", function (a, b) return bit32.band(a, b); end) == "0010")
+  assert(bitwiseOp("0110", "0001", function (a, b) return bit32.band(a, b); end) == "0000")
 
   print("== Tests bitwiseOp function with OR ==")
-  print(bitwiseOp("1111", "1111", function (a, b) return a | b; end) == "1111")
-  print(bitwiseOp("0101", "0010", function (a, b) return a | b; end) == "0111")
-  print(bitwiseOp("0101", "0011", function (a, b) return a | b; end) == "0111")
-  print(bitwiseOp("0010", "1000", function (a, b) return a | b; end) == "1010")
+  assert(bitwiseOp("1111", "1111", function (a, b) return bit32.bor(a, b); end) == "1111")
+  assert(bitwiseOp("0101", "0010", function (a, b) return bit32.bor(a, b); end) == "0111")
+  assert(bitwiseOp("0101", "0011", function (a, b) return bit32.bor(a, b); end) == "0111")
+  assert(bitwiseOp("0010", "1000", function (a, b) return bit32.bor(a, b); end) == "1010")
 end
 
 ------------------------------------------------------------------------
@@ -206,10 +206,10 @@ function preprocessing (nbRegisters, inputFile)
     [2]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a + b; end); end,                          -- addi
     [3]  = function(r, i) return applyArithmeticOpcode(r, i, 0, function (a, b) return a * b; end); end,                          -- mulr
     [4]  = function(r, i) return applyArithmeticOpcode(r, i, 1, function (a, b) return a * b; end); end,                          -- muli
-    [5]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a & b; end}); end,       -- banr
-    [6]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a & b; end}); end,       -- bani
-    [7]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return a | b; end}); end,       -- borr
-    [8]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return a | b; end}); end,       -- bori
+    [5]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return bit32.band(a, b); end}); end,       -- banr
+    [6]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return bit32.band(a, b); end}); end,       -- bani
+    [7]  = function(r, i) return applyArithmeticOpcode(r, i, 0, binaryOperation, {function (a, b) return bit32.bor(a, b); end}); end,       -- borr
+    [8]  = function(r, i) return applyArithmeticOpcode(r, i, 1, binaryOperation, {function (a, b) return bit32.bor(a, b); end}); end,       -- bori
     [9]  = function(r, i) return applyAssignmentOpcode(r, i, 0); end,                                                             -- setr
     [10] = function(r, i) return applyAssignmentOpcode(r, i, 1); end,                                                             -- seti
     [11] = function(r, i) return applyComparaisonOpcode(r, i, 0, function (a, b) return tonumber(a) > tonumber(b); end); end,     -- gtir
@@ -254,22 +254,22 @@ function preprocessing (nbRegisters, inputFile)
         table.insert(invalidIndex, 4)
       end
       --------------------------------------------------------------------
-      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a & b; end) then
+      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return bit32.band(a, b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 5)
       end
-      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a & b; end) then
+      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return bit32.band(a, b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 6)
       end
-      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end) then
+      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return bit32.bor(a, b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 7)
       end
-      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end) then
+      if isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return bit32.bor(a, b); end) then
         nbTruths = nbTruths + 1
       else
         table.insert(invalidIndex, 8)
@@ -340,10 +340,10 @@ function preprocessing (nbRegisters, inputFile)
         print("isAddi = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a + b; end))
         print("isMulr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return a * b; end))
         print("isMuli = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, function (a, b) return a * b; end))
-        print("isBanr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a & b; end))
-        print("isBani = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a & b; end))
-        print("isBorr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return a | b; end))
-        print("isBori = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return a | b; end))
+        print("isBanr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return bit32.band(a, b); end))
+        print("isBani = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return bit32.band(a, b); end))
+        print("isBorr = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 0, binaryOperation, function (a, b) return bit32.bor(a, b); end))
+        print("isBori = ", isArithmeticOpcode(initRegistersValues, instruction, finalRegistersValues, 1, binaryOperation, function (a, b) return bit32.bor(a, b); end))
         print("setr = ", isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 0))
         print("seti = ", isAssignmentOpcode(initRegistersValues, instruction, finalRegistersValues, 1))
         print("isGtir = ", isComparaisonOpcode(initRegistersValues, instruction, finalRegistersValues, 0, function (a, b) return tonumber(a) > tonumber(b); end))

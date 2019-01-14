@@ -26,7 +26,7 @@ end
 ------------------------------------------------------------------------
 function computePowerCell(x, y, serialNumber)
   local rackID = x + 10
-  return ((((rackID * y + serialNumber) * rackID) // 100) % 10) - 5
+  return (math.floor(((rackID * y + serialNumber) * rackID) / 100) % 10) - 5
 end
 ------------------------------------------------------------------------
 -- Tests

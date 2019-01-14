@@ -42,6 +42,7 @@ end
 --
 ------------------------------------------------------------------------
 function equals(point1, point2, dimension)
+  if not point1 or not point2 then return end
   if #point1 ~= #point2 then return end
   if dimension == nil then
     dimension = 2

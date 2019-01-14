@@ -129,11 +129,15 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
-function findNextPlayingUnit (units)
+function findNextPlayingUnit (units, nbUnits)
   local nextUnit = nil
   local finalIndex = nil
 
-  for i=1,#units do
+  if nbUnits == nil then
+    nbUnits = #units
+  end
+
+  for i=1,nbUnits do
     if units[i] ~= nil and units[i].position ~= nil then
       if nextUnit == nil then
           nextUnit = units[i]
@@ -148,22 +152,21 @@ function findNextPlayingUnit (units)
     end
   end
 
-  --print(point.toString(nextUnit.position))
-
   return nextUnit, finalIndex
 end
 print("|-------------------------------------------|")
 print("| Tests findNextPlayingUnit function :      |")
 print("|-------------------------------------------|")
-print(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, nil}), {position={x=2,y=1}}, 1))
-print(point.equals(findNextPlayingUnit({nil, {position={x=3, y=1}}}), {position={x=3,y=1}}, 2))
-print(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, {}}), {position={x=2,y=1}}, 1))
-print(point.equals(findNextPlayingUnit({{}, {position={x=3, y=1}}}), {position={x=3,y=1}}, 2))
-print(point.equals(findNextPlayingUnit({{position={x=4, y=2}}, {position={x=2, y=1}}}), {position={x=2,y=1}}, 2))
-print(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, {position={x=4, y=2}}}), {position={x=2,y=1}}, 2))
-print(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, {position={x=3, y=1}}}), {position={x=2,y=1}}, 2))
-print(point.equals(findNextPlayingUnit({{position={x=3, y=2}}, {position={x=3, y=1}}}), {position={x=3,y=1}}, 2))
-print(point.equals(findNextPlayingUnit({{position={x=0, y=2}}, {position={x=3, y=2}}, {position={x=9, y=1}}, {position={x=20, y=10}}}), {position={x=9,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, nil}, 2), {position={x=2,y=1}}, 1))
+assert(findNextPlayingUnit({nil, {position={x=3, y=1}}}, 2))
+assert(point.equals(findNextPlayingUnit({nil, {position={x=3, y=1}}}, 2), {position={x=3,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, {}}), {position={x=2,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{}, {position={x=3, y=1}}}), {position={x=3,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=4, y=2}}, {position={x=2, y=1}}}), {position={x=2,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, {position={x=4, y=2}}}), {position={x=2,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=2, y=1}}, {position={x=3, y=1}}}), {position={x=2,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=3, y=2}}, {position={x=3, y=1}}}), {position={x=3,y=1}}, 2))
+assert(point.equals(findNextPlayingUnit({{position={x=0, y=2}}, {position={x=3, y=2}}, {position={x=9, y=1}}, {position={x=20, y=10}}}), {position={x=9,y=1}}, 2))
 
 
 ------------------------------------------------------------------------
@@ -263,23 +266,16 @@ end
 --
 ------------------------------------------------------------------------
 function closestPointHeuristique(point1, point2, target)
-  --print("POINT1", point.toString(point1))
-  --print("POINT2", point.toString(point2))
-
   -- Compute both point distance to the target
   local distancePoint1ToTarget = math.abs(target.x - point1.x) + math.abs(target.y - point1.y)
   local distancePoint2ToTarget = math.abs(target.x - point2.x) + math.abs(target.y - point2.y)
 
   -- Study all cases
   if distancePoint1ToTarget == distancePoint2ToTarget then
-    --print("DEBUG" .. point.toString(findfirstPosInRO(point1, point2)))
-    --print(point.equals(point2, findfirstPosInRO(point1, point2)))
     return not point.equals(point2, findfirstPosInRO(point1, point2))
   elseif distancePoint1ToTarget < distancePoint2ToTarget then
-    --print("FALSE")
     return true
   elseif distancePoint1ToTarget > distancePoint2ToTarget then
-    --print("TRUE")
     return false
   else
     print("ERROR in closestPointHeuristique : This case should be taken by the first condition (equality)")
@@ -290,8 +286,6 @@ end
 --
 ------------------------------------------------------------------------
 function chooseNextPoint(currentPoint, endingPoint, heuristique)
-  --local finalPosition = nil
-
   -- Get all the adjacent squares around the current point
   _, possibleNextPoints = isInRange(currentPoint, map)
 
@@ -303,7 +297,6 @@ end
 --
 ------------------------------------------------------------------------
 function findShortestPathReadingOrder(source, target, weigthedMap)
-  --local path = {}
   local nextStep = nil
 
   local next = source

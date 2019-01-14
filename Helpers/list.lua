@@ -84,13 +84,13 @@ end
 ---------------------------------------------
 if PRINT_TEST then
   print("== Tests CONTAINS function ==")
-  print(contains({}, 2) == false)
-  print(contains({2}, 3) == false)
-  print(contains({8}, 8) == true)
-  print(contains({8,4,6,2}, 3) == false)
-  print(contains({8,4,6,2}, 4) == true)
-  print(contains({8,4,6,2}, 2) == true)
-  print(contains({8,4,6,2}, 6) == true)
+  assert(contains({}, 2) == false)
+  assert(contains({2}, 3) == false)
+  assert(contains({8}, 8) == true)
+  assert(contains({8,4,6,2}, 3) == false)
+  assert(contains({8,4,6,2}, 4) == true)
+  assert(contains({8,4,6,2}, 2) == true)
+  assert(contains({8,4,6,2}, 6) == true)
 end
 
 ------------------------------------------------------------------------
@@ -117,11 +117,11 @@ end
 
 if PRINT_TEST then
   print("== Tests EQUALS function for list ==")
-  print(equals({4,8}, {4,8}, isNumberEquals) == true)
-  print(equals({4,8}, {8,4}, isNumberEquals) == false)
-  print(equals({0,9}, {0,8}, isNumberEquals) == false)
-  print(equals({9,0}, {9,0}, isNumberEquals) == true)
-  print(equals({6,9}, {2,9}, isNumberEquals) == false)
+  assert(equals({4,8}, {4,8}, isNumberEquals) == true)
+  assert(equals({4,8}, {8,4}, isNumberEquals) == false)
+  assert(equals({0,9}, {0,8}, isNumberEquals) == false)
+  assert(equals({9,0}, {9,0}, isNumberEquals) == true)
+  assert(equals({6,9}, {2,9}, isNumberEquals) == false)
 end
 
 ------------------------------------------------------------------------
@@ -144,11 +144,11 @@ end
 ------------------------------------------------------------------------
 if PRINT_TEST then
   print("== Tests ADD function for list ==")
-  print(equals(add({6,5}, {0,0}), {6,5}))
-  print(equals(add({6,5}, {0,0}), {6,5}))
-  print(equals(add({2,2}, {2,2}), {4,4}))
-  print(equals(add({0,0}, {6,5}), {6,5}))
-  print(equals(add({2,2}, {-2,-2}), {0,0}))
+  assert(equals(add({6,5}, {0,0}), {6,5}))
+  assert(equals(add({6,5}, {0,0}), {6,5}))
+  assert(equals(add({2,2}, {2,2}), {4,4}))
+  assert(equals(add({0,0}, {6,5}), {6,5}))
+  assert(equals(add({2,2}, {-2,-2}), {0,0}))
 end
 
 ------------------------------------------------------------------------
@@ -163,11 +163,11 @@ function copy(list)
 end
 if PRINT_TEST then
   print("== Tests COPY function for list ==")
-  list = {} ; print(equals(copy(list), list) == true and copy(list) ~= list)
-  list = {4,8} ; print(equals(copy(list), list) == true and copy(list) ~= list)
-  list = {4,8} ; print(equals(copy(list), {8,4}) == false and copy(list) ~= {8,4})
-  list = {8,4} ; print(equals(copy(list), {4,8}) == false and copy(list) ~= {4,8})
-  list = {20,15,1005,0,82} ; print(equals(copy(list), list) == true and copy(list) ~= list)
+  list = {} ; assert(equals(copy(list), list) == true and copy(list) ~= list)
+  list = {4,8} ; assert(equals(copy(list), list) == true and copy(list) ~= list)
+  list = {4,8} ; assert(equals(copy(list), {8,4}) == false and copy(list) ~= {8,4})
+  list = {8,4} ; assert(equals(copy(list), {4,8}) == false and copy(list) ~= {4,8})
+  list = {20,15,1005,0,82} ; assert(equals(copy(list), list) == true and copy(list) ~= list)
 end
 
 ------------------------------------------------------------------------
