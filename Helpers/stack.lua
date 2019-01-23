@@ -82,10 +82,30 @@ end
 -----------------------------------------------------
 --
 -----------------------------------------------------
-function printstack (stack)
+function contains (stack, value, equalsFct)
+  if equalsFct == nil then
+    equalsFct = function (a, b) return a == b end
+  end
+  local found = false
   for k, v in pairs(stack) do
     if k ~= "first" and k ~= "last" then
-      print(k, " => ", v.pts.position.x, v.pts.position.y )
+      found = found or equalsFct(v, value)
+    end
+  end
+  return found
+end
+
+-----------------------------------------------------
+--
+-----------------------------------------------------
+function printstack (stack, toStringFct)
+  if toStringFct == nil then
+    toStringFct = function(x) return x.pts.position.x, x.pts.position.y end
+  end
+  print(stack["first"])
+  for k, v in pairs(stack) do
+    if k ~= "first" and k ~= "last" then
+      print(k, " => ", toStringFct(v))
     end
   end
 end
@@ -110,7 +130,7 @@ function sortstack(stack)
   tempArray = {}
   local oldIndex = nil
   local oldRes = ""
-  for i=getSize(stack),1,-1 do
+  for i = getSize(stack),1,-1 do
     for k, v in pairs(stack) do
       if k ~= "first" and k ~= "last" then
         if oldRes == "" and oldIndex == nil then
@@ -152,6 +172,7 @@ stack = {
   printstack = printstack,
   getSize = getSize,
   sortstack = sortstack,
+  contains = contains,
 }
 
 return stack

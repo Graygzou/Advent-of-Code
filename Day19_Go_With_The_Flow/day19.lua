@@ -88,6 +88,146 @@ function applyComparaisonOpcode(registers, instruction, mode, opcodeFunction)
   return registers
 end
 
+
+function loopOptimization(instructions, markedInstructions, currentInstructionPointer, previousInstructionPointer)
+  -- 1) Find the condition of the loop
+  -- The condition is composed of the condition instruction + the jump instruction to avoid the loop + the jump instruction for the loop.
+  -- The output of the condition instruction should be in the jump instruction WITH the instruction pointer.
+  -- The last jump instruction should be a seti.
+
+
+  -- 2)
+  -- We want to remove all possible instructions from the loop vy "fast-forwarding" all the operations.
+
+
+
+
+end
+
+
+function assemblyTranslation (instructions, regInstruc)
+  local finalTranslation = ""
+
+  local setOfInstructions = ""
+
+  local indexes = stack.new{}
+  local markedInstructions = stack.new{}
+
+  local i = 1;
+  local ifStatement = false
+  local elseStatement = false
+  local endStatement = false
+  while i < #instructions do
+
+    local currentInstruction = ""
+
+    -- Retrieve the next instruction
+    if not stack.contains(markedInstructions, instructions[i].ip) then
+      stack.pushleft(indexes, i-1)
+
+      --stack.printstack(markedInstructions, function(x) return x end)
+      --print(stack.contains(markedInstructions, instructions[i+1].ip))
+      -- Marked the current instruction
+      --table.insert(markedInstructions, instructions[i+1].ip)
+      stack.pushleft(markedInstructions, instructions[i].ip)
+    end
+
+    currentInstruction = currentInstruction .. "" .. i-1
+
+    if elseStatement then
+      currentInstruction = currentInstruction .. "  "
+      ifStatement = false
+      endStatement = true
+    end
+    if ifStatement then
+      currentInstruction = currentInstruction .. "  "
+      ifStatement = false
+      elseStatement = true
+    end
+
+    currentInstruction = currentInstruction .. "  "
+
+    if instructions[i].name == "addr" then
+      currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = [" .. instructions[i].input[1] .. "] + [" ..  instructions[i].input[2] .. "];"
+    elseif instructions[i].name == "addi" then
+      currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = [" .. instructions[i].input[1] .. "] + " ..  instructions[i].input[2] .. ";"
+    elseif instructions[i].name == "seti" then
+      currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = " .. instructions[i].input[1] .. ";"
+    elseif instructions[i].name == "setr" then
+      currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = [" .. instructions[i].input[1] .. "];"
+    elseif instructions[i].name == "mulr" then
+      currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = [" .. instructions[i].input[1] .. "] * [" ..  instructions[i].input[2] .. "];"
+    elseif instructions[i].name == "muli" then
+      currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = [" .. instructions[i].input[1] .. "] * " ..  instructions[i].input[2] .. ";"
+    end
+
+    if endStatement then
+      currentInstruction = currentInstruction .. "\n    END"
+      elseStatement = false
+      endStatement = false
+    end
+
+    if elseStatement then
+      currentInstruction = currentInstruction .. "\n    ELSE"
+      elseStatement = false
+      endStatement = true
+    end
+
+    if instructions[i].name == "eqrr" then
+      -- Check if the next instruction will use this result
+      if not (tonumber(instructions[i].output) == tonumber(instructions[i+1].input[1]) or (#instructions[i+1].input > 1 and tonumber(instructions[i].output) == tonumber(instructions[i+1].input[2]))) then
+        currentInstruction = currentInstruction .. "\n  [" .. instructions[i].output .. "] = 1;\n"
+        currentInstruction = currentInstruction .. "else\n"
+        currentInstruction = currentInstruction .. "  [" .. instructions[i].output .. "] = 0;"
+      else
+
+        if (tonumber(instructions[i+2].input[1]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[2]) == 1) or
+            (tonumber(instructions[i+2].input[2]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[1]) == 1) then
+          -- Negative condition
+          currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] != [" .. instructions[i].input[2] .. "] THEN"
+          endStatement = true
+          i = i + 1
+        else
+          -- Positive condition
+          currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] == [" .. instructions[i].input[2] .. "] THEN"
+          ifStatement = true
+        end
+        i = i + 1
+      end
+
+    elseif instructions[i].name == "gtrr" then
+      -- Check if the next instruction will use this result
+      if not (tonumber(instructions[i].output) == tonumber(instructions[i+1].input[1]) or (#instructions[i+1].input > 1 and tonumber(instructions[i].output) == tonumber(instructions[i+1].input[2]))) then
+        currentInstruction = currentInstruction .. "\n  [" .. instructions[i].output .. "] = 1;\n"
+        currentInstruction = currentInstruction .. "else\n"
+        currentInstruction = currentInstruction .. "  [" .. instructions[i].output .. "] = 0;"
+      else
+        if (tonumber(instructions[i+2].input[1]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[2]) == 1) or
+            (tonumber(instructions[i+2].input[2]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[1]) == 1) then
+          -- Negative condition
+          currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] <= [" .. instructions[i].input[2] .. "] THEN"
+          endStatement = true
+          i = i + 1
+        else
+          -- Positive condition
+          currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] > [" .. instructions[i].input[2] .. "] THEN"
+          ifStatement = true
+        end
+        i = i + 1
+      end
+    end
+
+
+    setOfInstructions = setOfInstructions .. currentInstruction .. "\n"
+
+    i = i + 1
+  end
+
+
+  print(setOfInstructions)
+end
+
+
 ------------------------------------------------------------------------
 -- partOne - function used for the part 1
 -- Params:
@@ -145,7 +285,7 @@ local function partOne (nbRegisters, inputFile)
       end
 
       table.insert(instructions, {
-        ip = lineIndex-1,
+        ip = lineIndex-2,
         name = fileLines[lineIndex]:sub(1,4),
         instruct = instruction,
         input = registersInput,
@@ -165,52 +305,68 @@ local function partOne (nbRegisters, inputFile)
     print(string)
   end
 
-  -- Try to identify loop in the program
-  local markedInstructions = {}
-  local previousInstructionPointer = 1
+  assemblyTranslation (instructions, registerBoundInstruction)
 
-  local currentInstructionPointer = previousInstructionPointer
+  -- Try to identify loop in the program
+  local markedInstructions = stack.new{}
+
+  local previousInstructionPointer = 0
+  local currentInstructionPointer = 0
   local registers = { 0, 0, 0, 0, 0, 0 }
 
-  print(currentInstructionPointer)
-
-  local stop = false
-  while not stop do
+  local currentIteration = 0
+  local limitNbIteration = 10000
+  local stop = true
+  while not stop and currentIteration < limitNbIteration do
     local debugString = ""
 
     -- Test
-    print("here", currentInstructionPointer)
-    print(instructions[currentInstructionPointer].ip)
+    --print("instruction pointer = ", currentInstructionPointer)
 
-    if not list.contains(markedInstructions, instructions[currentInstructionPointer].ip) then
+    --[[
+    if not stack.contains(markedInstructions, instructions[currentInstructionPointer+1].ip) then
+      stack.printstack(markedInstructions, function(x) return x end)
+      --print(stack.contains(markedInstructions, instructions[currentInstructionPointer+1].ip))
       -- Marked the current instruction
-      table.insert(markedInstructions, instructions[currentInstructionPointer].ip)
+      --table.insert(markedInstructions, instructions[currentInstructionPointer+1].ip)
+      stack.pushleft(markedInstructions, instructions[currentInstructionPointer+1].ip)
     else
+      print("Loop detected ! Previous = " + previousInstructionPointer + " current = " + currentInstructionPointer)
+
+      loopOptimization(instructions, markedInstructions, currentInstructionPointer, previousInstructionPointer)
+
+
+
       stop = true
     end
+    --]]
 
+    debugString = "ip=" .. instructions[currentInstructionPointer+1].ip .. " "
     debugString = debugString .. "["
     for reg = 1, #registers do
       debugString = debugString .. registers[reg] .. ", "
     end
     debugString = debugString .. "] "
-    debugString = debugString .. instructions[currentInstructionPointer].name .. " "
-    for reg = 1, #instructions[currentInstructionPointer].instruct do
-      debugString = debugString .. instructions[currentInstructionPointer].instruct[reg] .. " "
+    debugString = debugString .. instructions[currentInstructionPointer+1].name .. " "
+    for reg = 1, #instructions[currentInstructionPointer+1].instruct do
+      debugString = debugString .. instructions[currentInstructionPointer+1].instruct[reg] .. " "
     end
 
+    -- Write the value of the current instruction in the register
+    registers[tonumber(registerBoundInstruction)+1] = currentInstructionPointer
+
     -- Go the next instruction
-    if tonumber(instructions[currentInstructionPointer].output) == tonumber(registerBoundInstruction) then
+    if tonumber(instructions[currentInstructionPointer+1].output) == tonumber(registerBoundInstruction) then
       -- Modify the register 0 => Identify a jump
       previousInstructionPointer = currentInstructionPointer
 
       -- Compute it
-      print("Compute ", instructions[currentInstructionPointer].name)
-      registers = functionsRef[instructions[currentInstructionPointer].name](registers, instructions[currentInstructionPointer].instruct)
+      --print("Compute ", instructions[currentInstructionPointer+1].name)
+      registers = functionsRef[instructions[currentInstructionPointer+1].name](registers, instructions[currentInstructionPointer+1].instruct)
     else
       -- normal execution = go to the next line
       -- just compute
-      registers = functionsRef[instructions[currentInstructionPointer].name](registers, instructions[currentInstructionPointer].instruct)
+      registers = functionsRef[instructions[currentInstructionPointer+1].name](registers, instructions[currentInstructionPointer+1].instruct)
     end
 
     debugString = debugString .. "["
@@ -219,21 +375,34 @@ local function partOne (nbRegisters, inputFile)
     end
     debugString = debugString .. "] "
 
-    -- Move to the next instruction
-    registers[tonumber(registerBoundInstruction)+1] = registers[tonumber(registerBoundInstruction)+1] + 1
+    previousInstructionPointer = currentInstructionPointer
 
     -- Update the index for the next instruction
-    currentInstructionPointer = registers[tonumber(registerBoundInstruction)+1] + 1
+    currentInstructionPointer = registers[tonumber(registerBoundInstruction)+1]
 
-    print("DEBUG : ", debugString)
+    -- Move to the next instruction
+    currentInstructionPointer = currentInstructionPointer + 1
+
+    print(debugString)
+
+    if (currentInstructionPointer+1) > #instructions or (currentInstructionPointer+1) < 1 then
+      stop = true
+    end
+
+    currentIteration = currentIteration + 1
   end
 
-  print(previousInstructionPointer)
-  print(currentInstructionPointer-1)
+  print("Stop due to garde fou = ", currentIteration >= limitNbIteration)
 
+  --print(previousInstructionPointer)
+  --print(currentInstructionPointer-1)
+
+  --[[
   for i =1, #markedInstructions do
     print(markedInstructions[i])
   end
+  --]]
+  stack.printstack(markedInstructions, function(x) return x end)
 
   --[[
   local currentInstructionPointer = nil
