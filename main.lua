@@ -34,7 +34,7 @@ require "Day16_Chronal_Classification.day16"
 require "Day17_Reservoir_Research.day17"
 require "Day18_Settlers _of_The_North_Pole.day18"
 require "Day19_Go_With_The_Flow.day19"
---require "Day17_Reservoir_Research.day20"
+require "Day20_A_Regular_Map.day20"
 
 -- Variables
 local filename = "";
@@ -60,6 +60,7 @@ local mains = {
   [17] = {day17.day17Main, "Day17_Reservoir_Research/input.txt"},
   [18] = {day18.day18Main, "Day18_Settlers _of_The_North_Pole/input.txt"},
   [19] = {day19.day19Main, "Day19_Go_With_The_Flow/input.txt"},
+  [20] = {day20.day20Main, "Day20_A_Regular_Map/example2.txt"},
 }
 
 -- Retrieve input from the player

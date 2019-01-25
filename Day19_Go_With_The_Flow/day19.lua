@@ -108,7 +108,11 @@ end
 function assemblyTranslation (instructions, regInstruc)
   local finalTranslation = ""
 
-  local setOfInstructions = ""
+  -- String lists
+  local instructionsStrings = {}
+  for i = 1, #instructions do
+    instructionsStrings[i] = ""
+  end
 
   local indexes = stack.new{}
   local markedInstructions = stack.new{}
@@ -131,8 +135,6 @@ function assemblyTranslation (instructions, regInstruc)
       --table.insert(markedInstructions, instructions[i+1].ip)
       stack.pushleft(markedInstructions, instructions[i].ip)
     end
-
-    currentInstruction = currentInstruction .. "" .. i-1
 
     if elseStatement then
       currentInstruction = currentInstruction .. "  "
@@ -160,6 +162,7 @@ function assemblyTranslation (instructions, regInstruc)
     elseif instructions[i].name == "muli" then
       currentInstruction = currentInstruction .. " [" .. instructions[i].output .. "] = [" .. instructions[i].input[1] .. "] * " ..  instructions[i].input[2] .. ";"
     end
+    instructionsStrings[i] = currentInstruction
 
     if endStatement then
       currentInstruction = currentInstruction .. "\n    END"
@@ -179,17 +182,20 @@ function assemblyTranslation (instructions, regInstruc)
         currentInstruction = currentInstruction .. "\n  [" .. instructions[i].output .. "] = 1;\n"
         currentInstruction = currentInstruction .. "else\n"
         currentInstruction = currentInstruction .. "  [" .. instructions[i].output .. "] = 0;"
+        instructionsStrings[i] = currentInstruction
       else
 
         if (tonumber(instructions[i+2].input[1]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[2]) == 1) or
             (tonumber(instructions[i+2].input[2]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[1]) == 1) then
           -- Negative condition
           currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] != [" .. instructions[i].input[2] .. "] THEN"
+          instructionsStrings[i] = currentInstruction
           endStatement = true
           i = i + 1
         else
           -- Positive condition
           currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] == [" .. instructions[i].input[2] .. "] THEN"
+          instructionsStrings[i] = currentInstruction
           ifStatement = true
         end
         i = i + 1
@@ -204,27 +210,59 @@ function assemblyTranslation (instructions, regInstruc)
       else
         if (tonumber(instructions[i+2].input[1]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[2]) == 1) or
             (tonumber(instructions[i+2].input[2]) == tonumber(regInstruc) and tonumber(instructions[i+2].input[1]) == 1) then
-          -- Negative condition
-          currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] <= [" .. instructions[i].input[2] .. "] THEN"
-          endStatement = true
-          i = i + 1
+          -- Check if this condition is part of a do ... while statement
+          if (#instructions[i+3].input == 1) and (tonumber(instructions[i+3].output) == tonumber(regInstruc)) then
+            -- Do ... while
+            instructionsStrings[tonumber(instructions[i+2].input[1])+1] = "DO\n       " .. instructionsStrings[tonumber(instructions[i+2].input[1])+1]
+
+            -- Add missing tabulation
+            for counter = tonumber(instructions[i+2].input[1])+1, i do
+              instructionsStrings[counter] = "  " .. instructionsStrings[counter]
+            end
+
+            instructionsStrings[i] = currentInstruction .. " WHILE [" .. instructions[i].input[1] .. "] <= [" .. instructions[i].input[2] .. "] END"
+            --instructionsStrings[i] = currentInstruction
+            i = i + 1
+          else
+            -- Negative condition
+            currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] <= [" .. instructions[i].input[2] .. "] THEN"
+            instructionsStrings[i] = currentInstruction
+            endStatement = true
+            i = i + 1
+          end
         else
-          -- Positive condition
-          currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] > [" .. instructions[i].input[2] .. "] THEN"
-          ifStatement = true
+          -- Check if this condition is part of a do ... while statement
+          if (#instructions[i+2].input == 1) and (tonumber(instructions[i+2].output) == tonumber(regInstruc)) then
+            -- Do ... while
+            instructionsStrings[tonumber(instructions[i+2].input[1])+1] = "DO\n       " .. instructionsStrings[tonumber(instructions[i+2].input[1])+1]
+
+            -- Add missing tabulation
+            for counter = tonumber(instructions[i+2].input[1])+1, i do
+              instructionsStrings[counter] = "  " .. instructionsStrings[counter]
+            end
+
+            instructionsStrings[i] = currentInstruction .. " WHILE [" .. instructions[i].input[1] .. "] > [" .. instructions[i].input[2] .. "] END"
+            --instructionsStrings[i] = currentInstruction
+            --ifStatement = true
+          else
+            -- Positive condition
+            currentInstruction = currentInstruction .. " IF [" .. instructions[i].input[1] .. "] > [" .. instructions[i].input[2] .. "] THEN"
+            instructionsStrings[i] = currentInstruction
+            ifStatement = true
+          end
         end
         i = i + 1
       end
     end
 
-
-    setOfInstructions = setOfInstructions .. currentInstruction .. "\n"
-
+    instructionsStrings[i] = currentInstruction
     i = i + 1
   end
 
+  for i = 1, #instructionsStrings do
+    print(i-1 .. "  " .. instructionsStrings[i])
+  end
 
-  print(setOfInstructions)
 end
 
 
@@ -315,8 +353,8 @@ local function partOne (nbRegisters, inputFile)
   local registers = { 0, 0, 0, 0, 0, 0 }
 
   local currentIteration = 0
-  local limitNbIteration = 10000
-  local stop = true
+  local limitNbIteration = 1000000
+  local stop = false
   while not stop and currentIteration < limitNbIteration do
     local debugString = ""
 
@@ -335,12 +373,14 @@ local function partOne (nbRegisters, inputFile)
 
       loopOptimization(instructions, markedInstructions, currentInstructionPointer, previousInstructionPointer)
 
-
-
       stop = true
     end
     --]]
 
+    -- Write instruction pointer to the register just before the instruction is executed
+    registers[tonumber(registerBoundInstruction)+1] = currentInstructionPointer
+
+    --[[
     debugString = "ip=" .. instructions[currentInstructionPointer+1].ip .. " "
     debugString = debugString .. "["
     for reg = 1, #registers do
@@ -351,6 +391,7 @@ local function partOne (nbRegisters, inputFile)
     for reg = 1, #instructions[currentInstructionPointer+1].instruct do
       debugString = debugString .. instructions[currentInstructionPointer+1].instruct[reg] .. " "
     end
+    --]]
 
     -- Write the value of the current instruction in the register
     registers[tonumber(registerBoundInstruction)+1] = currentInstructionPointer
@@ -369,21 +410,25 @@ local function partOne (nbRegisters, inputFile)
       registers = functionsRef[instructions[currentInstructionPointer+1].name](registers, instructions[currentInstructionPointer+1].instruct)
     end
 
+    --[[
     debugString = debugString .. "["
     for reg = 1, #registers do
       debugString = debugString .. registers[reg] .. ", "
     end
     debugString = debugString .. "] "
+    --]]
 
     previousInstructionPointer = currentInstructionPointer
 
-    -- Update the index for the next instruction
-    currentInstructionPointer = registers[tonumber(registerBoundInstruction)+1]
 
-    -- Move to the next instruction
+
+    -- Write back the value of the register into the instruction pointer
+    -- And move to the next instruction
+    currentInstructionPointer = registers[tonumber(registerBoundInstruction)+1]
     currentInstructionPointer = currentInstructionPointer + 1
 
-    print(debugString)
+    print(registers[5])
+    --print(currentIteration)
 
     if (currentInstructionPointer+1) > #instructions or (currentInstructionPointer+1) < 1 then
       stop = true
