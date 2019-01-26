@@ -31,32 +31,39 @@ end
 local function partOne (inputFile)
 
   local fileLine = helper.saveLinesToArray(inputFile);
+
   -- Retrieve the real string only (^ = start / $ = end)
   local regexp = string.match(fileLine[1], "%^(.*)%$")
+  print("RegExp = ", regexp)
 
-  local counter = 0
+  local selection = string.match(regexp, '%([^()]*%)')
 
-  local currentIndex = 1
-  local stop = false
-  repeat
-    -- Find the next parenthesis
-    print(currentIndex)
-    local nextParenthesisIndex = string.find(regexp, "%(", currentIndex)
-
-    if nextParenthesisIndex == nil then
-      counter = counter + (#regexp - (currentIndex - 1))
-      stop = true
-    else
-      counter = counter + (nextParenthesisIndex - (currentIndex - 1))
-      currentIndex = currentIndex + nextParenthesisIndex
-
-      -- Choose the greatest number between all available options.
-      --findBestOption
+  while selection ~= nil do
+    -- Parse it and choose the greatest option
+    local biggestOption = ""
+    if string.match(selection, '|%)') == nil then
+      for token in string.gmatch(selection, "[^(|)]+") do
+        if #token > #biggestOption then
+          biggestOption = token
+        end
+      end
     end
-  until stop
 
-  print(regexp)
-  return counter;
+    if string.match(biggestOption, '|') ~= nil or string.match(biggestOption, '%(') or string.match(biggestOption, '%)') then
+      return -1
+    end
+
+    -- Find the previous selection in the string
+    local replacementIndexStart, replacementIndexEnd = string.find(regexp, '%(' .. selection .. '%)')
+
+    -- Replace it.
+    regexp = regexp:sub(1, replacementIndexStart-1) .. biggestOption .. regexp:sub(replacementIndexEnd+1, #regexp)
+
+    -- New selection
+    selection = string.match(regexp, '%([^()]*%)')
+  end
+
+  return #regexp;
 end
 
 ------------------------------------------------------------------------
@@ -67,10 +74,70 @@ end
 --    the final result for the part 2.
 ------------------------------------------------------------------------
 local function partTwo (inputFile)
+  local nbDoors = 14
 
-  -- TODO
+  local fileLine = helper.saveLinesToArray(inputFile);
 
-  return 0;
+  -- Retrieve the real string only (^ = start / $ = end)
+  local regexp = string.match(fileLine[1], "%^(.*)%$")
+  print("RegExp = ", regexp)
+
+  local selection = string.match(regexp, '%([^()]*%)')
+  print("Test v2", selection)
+
+  local currentIteration = 0
+  local nbIterationMax = 10
+  while selection ~= nil and currentIteration < nbIterationMax do
+    -- Find the previous selection in the string
+    local replacementIndexStart, replacementIndexEnd = string.find(regexp, '%(' .. selection .. '%)')
+
+    local beforeSelection = string.match(regexp:sub(1, replacementIndexStart-1), '[^|()][A-Z]*$')
+    print(beforeSelection)
+
+    local afterSelection = string.match(regexp:sub(replacementIndexEnd+1, #regexp), '^[A-Z]*[^|()]')
+    print(afterSelection)
+
+
+    -- Parse it and choose the greatest option
+    local newOptions = ""
+    if string.match(selection, '|%)') == nil then
+      -- For each possible option (token)
+      for token in string.gmatch(selection, "[^(|)]+") do
+        -- Replace it and add it to the path array.
+        if beforeSelection ~= nil then
+          newOptions = newOptions .. beforeSelection
+        end
+        newOptions = newOptions .. token
+        if afterSelection ~= nil then
+          newOptions = newOptions .. afterSelection
+        end
+        newOptions = newOptions .. "|"
+      end
+      -- Remove the last '|'
+      newOptions = newOptions:sub(1,#newOptions-1)
+      print(newOptions)
+    end
+
+    -- Replace it.
+    regexp = regexp:sub(1, replacementIndexStart-1) .. newOptions .. regexp:sub(replacementIndexEnd+1, #regexp)
+
+    -- New selection
+    selection = string.match(regexp, '%([^()]*%)')
+    print("Test v2", selection)
+
+    currentIteration = currentIteration + 1
+  end
+
+  print("FINAL", regexp)
+
+  local nbRooms = 0
+  for possiblePath in string.gmatch(regexp, "[^(|)]+") do
+    if #possiblePath >= nbDoors then
+      nbRooms = nbRooms + 1
+    end
+  end
+
+  return nbRooms
 end
 
 
@@ -82,7 +149,7 @@ function day20Main (filename)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
-  local partOneResult = partOne(inputFile)
+  --local partOneResult = partOne(inputFile)
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");

@@ -60,7 +60,7 @@ local mains = {
   [17] = {day17.day17Main, "Day17_Reservoir_Research/input.txt"},
   [18] = {day18.day18Main, "Day18_Settlers _of_The_North_Pole/input.txt"},
   [19] = {day19.day19Main, "Day19_Go_With_The_Flow/input.txt"},
-  [20] = {day20.day20Main, "Day20_A_Regular_Map/example2.txt"},
+  [20] = {day20.day20Main, "Day20_A_Regular_Map/example4.txt"},
 }
 
 -- Retrieve input from the player
