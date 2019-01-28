@@ -74,7 +74,8 @@ end
 --    the final result for the part 2.
 ------------------------------------------------------------------------
 local function partTwo (inputFile)
-  local nbDoors = 14
+  local nbDoors = 5
+  local nbRooms = 0
 
   local fileLine = helper.saveLinesToArray(inputFile);
 
@@ -86,51 +87,56 @@ local function partTwo (inputFile)
   print("Test v2", selection)
 
   local currentIteration = 0
-  local nbIterationMax = 10
+  local nbIterationMax = 5000
   while selection ~= nil and currentIteration < nbIterationMax do
     -- Find the previous selection in the string
     local replacementIndexStart, replacementIndexEnd = string.find(regexp, '%(' .. selection .. '%)')
 
     local beforeSelection = string.match(regexp:sub(1, replacementIndexStart-1), '[^|()][A-Z]*$')
-    print(beforeSelection)
+    if beforeSelection == nil then
+      beforeSelection = ""
+    end
+    --print(beforeSelection)
 
     local afterSelection = string.match(regexp:sub(replacementIndexEnd+1, #regexp), '^[A-Z]*[^|()]')
-    print(afterSelection)
-
+    if afterSelection == nil then
+      afterSelection = ""
+    end
+    --print(afterSelection)
 
     -- Parse it and choose the greatest option
     local newOptions = ""
     if string.match(selection, '|%)') == nil then
       -- For each possible option (token)
       for token in string.gmatch(selection, "[^(|)]+") do
-        -- Replace it and add it to the path array.
-        if beforeSelection ~= nil then
-          newOptions = newOptions .. beforeSelection
+        if #token >= nbDoors then
+          print(token)
+          nbRooms = nbRooms + 1
+        else
+          -- Replace it and add it to the path array.
+          newOptions = newOptions .. beforeSelection .. token .. afterSelection .. "|"
         end
-        newOptions = newOptions .. token
-        if afterSelection ~= nil then
-          newOptions = newOptions .. afterSelection
-        end
-        newOptions = newOptions .. "|"
       end
       -- Remove the last '|'
       newOptions = newOptions:sub(1,#newOptions-1)
-      print(newOptions)
+    else
+      newOptions = newOptions .. beforeSelection .. afterSelection
     end
+    print("FINAL RESULT", newOptions)
 
     -- Replace it.
-    regexp = regexp:sub(1, replacementIndexStart-1) .. newOptions .. regexp:sub(replacementIndexEnd+1, #regexp)
+    regexp = regexp:sub(1, replacementIndexStart - #beforeSelection - 1) .. newOptions .. regexp:sub(replacementIndexEnd + #afterSelection + 1, #regexp)
 
     -- New selection
     selection = string.match(regexp, '%([^()]*%)')
-    print("Test v2", selection)
+    --print("Test v2", selection)
 
     currentIteration = currentIteration + 1
+    print("Iteration n°" .. currentIteration)
   end
 
-  print("FINAL", regexp)
+  print("FINAL", nbRooms, regexp)
 
-  local nbRooms = 0
   for possiblePath in string.gmatch(regexp, "[^(|)]+") do
     if #possiblePath >= nbDoors then
       nbRooms = nbRooms + 1
