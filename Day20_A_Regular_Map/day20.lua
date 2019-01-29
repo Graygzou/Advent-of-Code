@@ -92,13 +92,13 @@ local function partTwo (inputFile)
     -- Find the previous selection in the string
     local replacementIndexStart, replacementIndexEnd = string.find(regexp, '%(' .. selection .. '%)')
 
-    local beforeSelection = string.match(regexp:sub(1, replacementIndexStart-1), '[^|()][A-Z]*$')
+    beforeSelection = string.match(regexp:sub(1, replacementIndexStart-1), '[^|()][A-Z]*$')
     if beforeSelection == nil then
       beforeSelection = ""
     end
     --print(beforeSelection)
 
-    local afterSelection = string.match(regexp:sub(replacementIndexEnd+1, #regexp), '^[A-Z]*[^|()]')
+    afterSelection = string.match(regexp:sub(replacementIndexEnd+1, #regexp), '^[A-Z]*[^|()]')
     if afterSelection == nil then
       afterSelection = ""
     end
@@ -108,17 +108,19 @@ local function partTwo (inputFile)
     local newOptions = ""
     if string.match(selection, '|%)') == nil then
       -- For each possible option (token)
-      for token in string.gmatch(selection, "[^(|)]+") do
-        if #token >= nbDoors then
-          print(token)
-          nbRooms = nbRooms + 1
-        else
+      --for token in string.gmatch(selection, "[^(|)]+") do
+        --if #token >= nbDoors then
+        --  print(token)
+         -- nbRooms = nbRooms + 1
+        --else
           -- Replace it and add it to the path array.
-          newOptions = newOptions .. beforeSelection .. token .. afterSelection .. "|"
-        end
-      end
+      --    newOptions = newOptions .. beforeSelection .. token .. afterSelection .. "|"
+        --end
+      --end
+      print(string.gsub(selection, "([^%(%|%)]+)", function(w) return beforeSelection .. w .. afterSelection end))
+      newOptions = newOptions .. string.gsub(selection, "([^%(%|%)]+)", function(w) return beforeSelection .. w .. afterSelection end)
       -- Remove the last '|'
-      newOptions = newOptions:sub(1,#newOptions-1)
+      --newOptions = newOptions:sub(1,#newOptions-1)
     else
       newOptions = newOptions .. beforeSelection .. afterSelection
     end
@@ -146,6 +148,76 @@ local function partTwo (inputFile)
   return nbRooms
 end
 
+------------------------------------------------------------------------
+local function partTwoddd (inputFile)
+  local nbDoors = 1000
+  local nbRooms = 0
+
+  local fileLine = helper.saveLinesToArray(inputFile);
+
+  -- Retrieve the real string only (^ = start / $ = end)
+  local regexp = string.match(fileLine[1], "%^(.*)%$")
+  local newRegexp = regexp
+  print("RegExp = ", regexp)
+
+  local currentIteration = 0
+  local nbIterationMax = 2000
+  repeat
+    regexp = newRegexp
+
+    newRegexp = string.gsub(regexp, '([A-Z]*)(%([^()]*%))([A-Z]*)', function(a, b, c)
+      local string = ""
+      if string.match(b, '|%)') == nil then
+        for token in string.gmatch(b, "[^(|)]+") do
+          string = string .. a .. token .. c .. '|'
+        end
+        string = string:sub(1, #string-1)
+      else
+        string = a .. c
+      end
+      return string
+    end)
+    currentIteration = currentIteration + 1
+
+    print(currentIteration)
+    --print(newRegexp)
+  until currentIteration > nbIterationMax or regexp == newRegexp
+
+  --print("FINAL", nbRooms, regexp)
+
+  local paths = {}
+
+  for possiblePath in string.gmatch(regexp, "[^(|)]+") do
+    -- Check if the path is legit
+    if #possiblePath >= nbDoors then
+      -- Add the path
+      table.insert(paths, possiblePath:sub(1000, #possiblePath))
+      --print(possiblePath:sub(1000, #possiblePath))
+    end
+  end
+
+  print("post-processing")
+
+  -- Find unique rooms from the list
+  for i = 1, #paths do
+    -- For all the character from the current path
+    while #paths[i] > 0 do
+      -- Count the current room
+      nbRooms = nbRooms + 1
+      local currentChar = paths[i]:sub(1,1)
+
+      -- Remove that character from all the path (including the current one)
+      for k = 1, #paths do
+        if paths[k]:sub(1,1) == currentChar then
+          paths[k] = paths[k]:sub(2, #paths[k])
+        end
+      end
+    end
+  end
+
+  return nbRooms
+end
+
 
 --#################################################################
 -- Main - Main function
@@ -160,7 +232,7 @@ function day20Main (filename)
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
 
-  local partTwoResult = partTwo(inputFile)
+  local partTwoResult = partTwoddd(inputFile)
 
   -- Finally close the file
   inputFile:close();
