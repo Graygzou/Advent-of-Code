@@ -199,17 +199,27 @@ local function partTwoddd (inputFile)
   print("post-processing")
 
   -- Find unique rooms from the list
-  for i = 1, #paths do
-    -- For all the character from the current path
-    while #paths[i] > 0 do
-      -- Count the current room
-      nbRooms = nbRooms + 1
-      local currentChar = paths[i]:sub(1,1)
+  while #paths > 0 do
+    local i = 1
+    local currentChar = nil
+    repeat
+      currentChar = paths[i]:sub(1,1)
+      i = i + 1
+    until currentChar == nil or i >= #paths
 
-      -- Remove that character from all the path (including the current one)
-      for k = 1, #paths do
-        if paths[k]:sub(1,1) == currentChar then
-          paths[k] = paths[k]:sub(2, #paths[k])
+    print("Debug", currentChar, paths[i-1])
+
+    -- Count the current room of the first path
+    nbRooms = nbRooms + 1
+
+    -- Remove that character from all the path (including the current one)
+    for j = 1, #paths do
+      -- Remove empty path from the list
+      if paths[j] ~= nil then
+        if #paths[j] <= 0 then
+          table.remove(paths, j)
+        elseif paths[j]:sub(1,1) == currentChar then
+          paths[j] = paths[j]:sub(2, #paths[j])
         end
       end
     end
