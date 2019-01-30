@@ -228,6 +228,145 @@ local function partTwoddd (inputFile)
   return nbRooms
 end
 
+local function partTwoFinal(inputFile)
+  --local nbDoors = 25
+  local nbDoors = 1000
+  local nbRooms = 0
+
+  local fileLine = helper.saveLinesToArray(inputFile);
+
+  -- Retrieve the real string only (^ = start / $ = end)
+  local regexp = string.match(fileLine[1], "%^(.*)%$")
+  print("RegExp = ", regexp)
+
+  -- Replace all Letter by the actual number of letters itself
+  local regexpNum = string.gsub(regexp, '([^(|)]*)', function(w)
+    if w ~= "" then
+      return string.len(w)
+    end
+  end)
+
+  print(regexpNum)
+
+  local stackCounter = stack.new{}
+
+  local i = 1
+  local nbIteration = 0
+  local nbIterationMax = 10000
+
+  local nbDoorsPassed = 0
+  while i <= #regexpNum and nbIteration < nbIterationMax do
+    print("Next path ", regexpNum:sub(i, #regexpNum))
+
+    local specialCharIndex = string.find(regexpNum:sub(i, #regexpNum), '[%(%|%)]')
+    if specialCharIndex ~= nil then
+      local specialChar = regexpNum:sub(i-1 + specialCharIndex, i-1 + specialCharIndex)
+      print(" ====== Nb doors passed = ", nbDoorsPassed, " ====== ")
+
+      -- Test if we need to add some rooms
+      if tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)) ~= nil then
+        if nbDoorsPassed > nbDoors then
+          -- Add the room
+          nbRooms = nbRooms + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1))
+
+          print("New rooms found : ", tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)))
+        elseif nbDoorsPassed + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)) > nbDoors then
+          nbRooms = nbRooms + (nbDoorsPassed + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1))) - nbDoors
+          -- Debug
+          print("Start reaching finals rooms : ", (nbDoorsPassed + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1))) - nbDoors)
+        end
+      end
+
+      if specialChar == "(" then
+        -- Push the current total to keep the old one but use this one next.
+        if tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)) ~= nil then
+          nbDoorsPassed = nbDoorsPassed + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1))
+          stack.pushleft(stackCounter, nbDoorsPassed)
+
+          print("Fast-forward and go throught " .. regexpNum:sub(i, i-1 + specialCharIndex-1) .. " more door(s) !")
+        end
+      elseif specialChar == "|" then
+        nbDoorsPassed = stack.getleft(stackCounter)
+
+        if regexpNum:sub(i+1, i+1 + specialCharIndex-1) == '|)' then
+          print("Empty option after " .. nbDoorsPassed + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)) .. " doors : Go back to the last junction")
+          i = i + 1
+        else
+          if tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)) ~= nil then
+            print("Condition path after " .. nbDoorsPassed + tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)) .. " doors : Go back to the last junction to explore other paths.")
+          else
+            print("Condition path after " .. nbDoorsPassed .. " doors : Go back to the last junction")
+          end
+        end
+
+        -- Debug
+        --print("Reset old total", nbDoorsPassed)
+        --print(regexpNum:sub(i, i-1 + specialCharIndex-1))
+      elseif specialChar == ")" then
+        --print(tonumber(regexpNum:sub(i, i-1 + specialCharIndex-1)))
+        --if regexpNum:sub(i-1, i-1 + specialCharIndex-1) == '|' then
+          -- too care of it earlier
+        --else
+        --print(regexpNum:sub(i+2, i+1 + specialCharIndex-1))
+        --print("ICI", string.find(regexpNum:sub(i+2, i+1 + specialCharIndex-1), "[(|)]"))
+        if string.find(regexpNum:sub(i+2, i+1 + specialCharIndex-1), "[(|)]") == nil then
+          -- Update the currentTotal with the number
+          -- Note: all options should have the same length here !
+          --print("here")
+          --if tonumber(regexpNum:sub(i+1, i+1 + specialCharIndex-1)) ~= nil then
+          --  print("Fast-forward and go throught " .. regexpNum:sub(i+1, i+1 + specialCharIndex-1) .. " more door(s) !")
+          --  nbDoorsPassed = nbDoorsPassed + tonumber(regexpNum:sub(i+1, i+1 + specialCharIndex-1))
+
+          --  print("End of conditional path after " .. nbDoorsPassed .. " doors : Go back to the last junction")
+          --end
+          nbDoorsPassed = stack.popleft(stackCounter)
+        else
+          -- Note: options can have different length
+          -- Retrieve the old total to continue with the
+          print("End of conditional path after " .. nbDoorsPassed .. " doors : Go back to the last junction")
+          stack.popleft(stackCounter)
+          nbDoorsPassed = stack.getleft(stackCounter)
+        end
+        --end
+      end
+
+      i = i + specialCharIndex
+    else
+      -- End : just add to the final rooms if possible
+      --if currentTotal + tonumber(regexpNum:sub(i, #regexpNum)) > nbDoors then
+      --  nbRooms = nbRooms + (currentTotal + tonumber(regexpNum:sub(i, #regexpNum))) - nbDoors
+        -- Debug
+      --  print("Add : ", (currentTotal + tonumber(regexpNum:sub(i, #regexpNum))) - nbDoors)
+      --end
+
+      -- Test if we need to add some rooms
+      if nbDoorsPassed > nbDoors then
+        -- Add the room
+        nbRooms = nbRooms + tonumber(regexpNum:sub(i, #regexpNum))
+
+        print("New rooms found : ", tonumber(regexpNum:sub(i, #regexpNum)))
+      elseif nbDoorsPassed + tonumber(regexpNum:sub(i, #regexpNum)) > nbDoors then
+        nbRooms = nbRooms + (nbDoorsPassed + tonumber(regexpNum:sub(i, #regexpNum))) - nbDoors
+
+        print("Start reaching finals rooms : ", (nbDoorsPassed + tonumber(regexpNum:sub(i, #regexpNum))) - nbDoors)
+      end
+
+      -- Update for the last time the current total
+      print("END = ", tonumber(regexpNum:sub(i, #regexpNum)))
+      nbDoorsPassed = nbDoorsPassed + tonumber(regexpNum:sub(i, #regexpNum))
+
+      i = i + 1
+    end
+
+    --print("I", i)
+    --print("======= Current total", nbDoorsPassed)
+
+    nbIteration = nbIteration + 1
+  end
+
+  return nbRooms
+end
+
 
 --#################################################################
 -- Main - Main function
@@ -242,7 +381,7 @@ function day20Main (filename)
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
 
-  local partTwoResult = partTwoddd(inputFile)
+  local partTwoResult = partTwoFinal(inputFile)
 
   -- Finally close the file
   inputFile:close();

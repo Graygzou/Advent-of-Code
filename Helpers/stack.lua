@@ -70,6 +70,15 @@ end
 -----------------------------------------------------
 --
 -----------------------------------------------------
+function getleft (stack)
+  local first = stack.first
+  if first > stack.last then return nil end
+  return stack[first]
+end
+
+-----------------------------------------------------
+--
+-----------------------------------------------------
 function popright (stack)
   local last = stack.last
   if stack.first > last then return nil end
@@ -77,6 +86,15 @@ function popright (stack)
   stack[last] = nil         -- to allow garbage collection
   stack.last = last - 1
   return value
+end
+
+-----------------------------------------------------
+--
+-----------------------------------------------------
+function getright (stack)
+  local last = stack.last
+  if stack.first > last then return nil end
+  return stack[last]
 end
 
 -----------------------------------------------------
@@ -169,6 +187,8 @@ stack = {
   pushright = pushright,
   popleft = popleft,
   popright = popright,
+  getleft = getleft,
+  getright = getright,
   printstack = printstack,
   getSize = getSize,
   sortstack = sortstack,
