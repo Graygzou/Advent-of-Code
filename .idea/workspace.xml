@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="33a5df6b-db73-4cd2-8645-b5db066286cb" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Day20_A_Regular_Map/example8.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Day20_A_Regular_Map/day20.lua" afterPath="$PROJECT_DIR$/Day20_A_Regular_Map/day20.lua" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Helpers/stack.lua" afterPath="$PROJECT_DIR$/Helpers/stack.lua" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt" afterPath="$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Day20_A_Regular_Map/input.txt" afterPath="$PROJECT_DIR$/Day20_A_Regular_Map/input.txt" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -22,8 +24,18 @@
       <file leaf-file-name="main.lua" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="193">
+            <state relative-caret-position="252">
               <caret line="62" column="53" lean-forward="false" selection-start-line="62" selection-start-column="53" selection-end-line="62" selection-end-column="53" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="example8.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example8.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="54" lean-forward="false" selection-start-line="0" selection-start-column="54" selection-end-line="0" selection-end-column="54" />
               <folding />
             </state>
           </provider>
@@ -32,11 +44,9 @@
       <file leaf-file-name="day20.lua" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/day20.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="144">
-              <caret line="310" column="10" lean-forward="false" selection-start-line="310" selection-start-column="10" selection-end-line="310" selection-end-column="10" />
-              <folding>
-                <marker date="1548821752028" expanded="true" signature="2600:4921" ph="..." />
-              </folding>
+            <state relative-caret-position="36">
+              <caret line="119" column="0" lean-forward="true" selection-start-line="119" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -44,18 +54,8 @@
       <file leaf-file-name="stack.lua" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Helpers/stack.lua">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="193">
+            <state relative-caret-position="379">
               <caret line="190" column="22" lean-forward="false" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="22" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="list.lua" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Helpers/list.lua">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1134">
-              <caret line="63" column="15" lean-forward="false" selection-start-line="63" selection-start-column="15" selection-end-line="63" selection-end-column="15" />
               <folding />
             </state>
           </provider>
@@ -71,21 +71,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="example1.txt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example1.txt">
+      <file leaf-file-name="example6.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example6.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
-              <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="input.txt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/input.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="792">
-              <caret line="0" column="6158" lean-forward="false" selection-start-line="0" selection-start-column="6155" selection-end-line="0" selection-end-column="6158" />
+              <caret line="0" column="48" lean-forward="false" selection-start-line="0" selection-start-column="48" selection-end-line="0" selection-end-column="48" />
               <folding />
             </state>
           </provider>
@@ -94,15 +84,15 @@
       <file leaf-file-name="example3.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="18">
-              <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+            <state relative-caret-position="0">
+              <caret line="0" column="31" lean-forward="false" selection-start-line="0" selection-start-column="31" selection-end-line="0" selection-end-column="31" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="example4.txt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example4.txt">
+      <file leaf-file-name="example2.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example2.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="18">
               <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
@@ -116,6 +106,16 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="0">
               <caret line="0" column="37" lean-forward="false" selection-start-line="0" selection-start-column="37" selection-end-line="0" selection-end-column="37" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="example4.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example4.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="18">
+              <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -139,8 +139,8 @@
       <find>WNWW</find>
       <find>(</find>
       <find>|</find>
-      <find>|)</find>
       <find>[A-Z]*\)[A-Z]*</find>
+      <find>|)</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -164,14 +164,15 @@
         <option value="$PROJECT_DIR$/Helpers/list.lua" />
         <option value="$PROJECT_DIR$/Day19_Go_With_The_Flow/day19.lua" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example2.txt" />
-        <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example4.txt" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example1.txt" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example5.txt" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example6.txt" />
         <option value="$PROJECT_DIR$/Helpers/stack.lua" />
-        <option value="$PROJECT_DIR$/Day20_A_Regular_Map/input.txt" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example7.txt" />
+        <option value="$PROJECT_DIR$/Day20_A_Regular_Map/input.txt" />
+        <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example8.txt" />
+        <option value="$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt" />
         <option value="$PROJECT_DIR$/main.lua" />
         <option value="$PROJECT_DIR$/Day20_A_Regular_Map/day20.lua" />
       </list>
@@ -203,8 +204,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
@@ -760,12 +761,13 @@
       <workItem from="1548470917405" duration="5650000" />
       <workItem from="1548521437497" duration="9599000" />
       <workItem from="1548719162287" duration="17189000" />
-      <workItem from="1548806637078" duration="14573000" />
+      <workItem from="1548806637078" duration="14672000" />
+      <workItem from="1548825407299" duration="7656000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="108536000" />
+    <option name="totallyTimeSpent" value="116291000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="25" width="1600" height="875" extended-state="6" />
@@ -774,7 +776,7 @@
       <window_info id="PlantUML" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Nl-Palette" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3948052" sideWeight="0.096875" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.387013" sideWeight="0.5025" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -789,7 +791,7 @@
       <window_info id="Palette&#9;" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Image Layers" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5558441" sideWeight="0.903125" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.387013" sideWeight="0.4975" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Floobits" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
@@ -821,13 +823,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Helpers/helper.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4032">
-          <caret line="224" column="8" lean-forward="false" selection-start-line="224" selection-start-column="8" selection-end-line="224" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/main.lua">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1098">
@@ -1097,32 +1092,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example2.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example6.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="48" lean-forward="false" selection-start-line="0" selection-start-column="48" selection-end-line="0" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example1.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Helpers/list.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1134">
-          <caret line="63" column="15" lean-forward="false" selection-start-line="63" selection-start-column="15" selection-end-line="63" selection-end-column="15" />
           <folding />
         </state>
       </provider>
@@ -1135,15 +1108,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/input.txt">
+    <entry file="file://$PROJECT_DIR$/Helpers/list.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="792">
-          <caret line="0" column="6158" lean-forward="false" selection-start-line="0" selection-start-column="6155" selection-end-line="0" selection-end-column="6158" />
+        <state relative-caret-position="374">
+          <caret line="63" column="15" lean-forward="false" selection-start-line="63" selection-start-column="15" selection-end-line="63" selection-end-column="15" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt">
+    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/input.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-516">
+          <caret line="0" column="2840" lean-forward="false" selection-start-line="0" selection-start-column="2838" selection-end-line="0" selection-end-column="2840" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Helpers/stack.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="379">
+          <caret line="190" column="22" lean-forward="false" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example2.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="18">
           <caret line="1" column="0" lean-forward="false" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
@@ -1159,6 +1148,14 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example6.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="48" lean-forward="false" selection-start-line="0" selection-start-column="48" selection-end-line="0" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example4.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="18">
@@ -1167,10 +1164,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Helpers/stack.lua">
+    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example3.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
-          <caret line="190" column="22" lean-forward="false" selection-start-line="190" selection-start-column="22" selection-end-line="190" selection-end-column="22" />
+        <state relative-caret-position="0">
+          <caret line="0" column="31" lean-forward="false" selection-start-line="0" selection-start-column="31" selection-end-line="0" selection-end-column="31" />
           <folding />
         </state>
       </provider>
@@ -1183,9 +1180,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/example8.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="54" lean-forward="false" selection-start-line="0" selection-start-column="54" selection-end-line="0" selection-end-column="54" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
+        <state relative-caret-position="252">
           <caret line="62" column="53" lean-forward="false" selection-start-line="62" selection-start-column="53" selection-end-line="62" selection-end-column="53" />
           <folding />
         </state>
@@ -1193,11 +1198,9 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Day20_A_Regular_Map/day20.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="310" column="10" lean-forward="false" selection-start-line="310" selection-start-column="10" selection-end-line="310" selection-end-column="10" />
-          <folding>
-            <marker date="1548821752028" expanded="true" signature="2600:4921" ph="..." />
-          </folding>
+        <state relative-caret-position="36">
+          <caret line="119" column="0" lean-forward="true" selection-start-line="119" selection-start-column="0" selection-end-line="119" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
