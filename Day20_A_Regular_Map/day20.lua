@@ -66,8 +66,19 @@ local function partOne (inputFile)
   return #regexp;
 end
 
-function hashFct(point)
-  return point.x .. "/" .. point.y
+function hashFct(origin, destination)
+  -- Order the two points first
+  local firstPoint = origin
+  local secondPoint = destination
+  if origin.y > destination.y or (origin.y == destination.y and origin.x < destination.x) then
+    firstPoint = origin
+    secondPoint = destination
+  else
+    firstPoint = destination
+    secondPoint = origin
+  end
+
+  return firstPoint.x .. "," .. firstPoint.y .. " | " .. secondPoint.x .. "," .. secondPoint.y
 end
 
 local function partTwo(inputFile, nbDoors)
@@ -78,23 +89,6 @@ local function partTwo(inputFile, nbDoors)
 
   -- Retrieve the real string only (^ = start / $ = end)
   local regexp = string.match(fileLine[1], "%^(.*)%$")
-  print("RegExp = ", regexp)
-
-  -- Replace all Letter by the actual number of letters itself
-  --local regexpNum = string.gsub(regexp, '([^(|)]*)', function(w)
-  --  if w ~= "" then
-  --   return string.len(w)
-  --  end
-  --end)
-
-  -- Divided by 2 all the options present in empty options.
-  --local regexpNum = string.gsub(regexpNum, '([%d+%|]+%|%))', function(w)
-  --  if w ~= "" then
-  --    print(w)
-  --    return string.gsub(w, "(%d+)", function(x) return tonumber(x)/2 end)
-  --    --return string.gsub(w, "(%d+)", function(x) return 0 end)
-  --  end
-  --end)
 
   local directions = {
     ["N"] = point.new{0, 1},
@@ -103,48 +97,36 @@ local function partTwo(inputFile, nbDoors)
     ["E"] = point.new{1, 0},
   }
 
-  print(regexpNum)
-
   local stackCounter = stack.new{}
 
   local i = 1
   local nbIteration = 0
-  local nbIterationMax = 10000
-
+  local nbIterationMax = 50000
   local nbDoorsPassed = 0
-  local initPoint = point.new{0,0 }
-  local currentPoint = initPoint
+  local currentPoint = point.new{0,0}
   while i <= #regexp and nbIteration < nbIterationMax do
-    print(" ====== CurrentPoint = ", point.toString(currentPoint), " ====== ")
-    print(" ====== Nb doors passed = ", nbDoorsPassed, " ====== ")
-    print(" ====== Nb rooms tagged = ", nbRooms, " ====== ")
-    --print("Next path ", regexpNum:sub(i, #regexpNum))
-
-    --local specialCharIndex = string.find(regexpNum:sub(i, #regexpNum), '[%(%|%)]')
-
     -- Retrieve the next char if the string
     local currentChar = regexp:sub(i,i)
-    print(currentChar)
+
+    --print(" ============== CHAR = " .. currentChar .. ", CurrentPoint = ", point.toString(currentPoint), " ==============0 ")
+    --print(" ====== Nb doors passed = ", nbDoorsPassed, " ====== ")
+    --print(" ====== Nb rooms tagged = ", nbRooms, " ====== ")
+    --print(" ====== Nb rooms tagged = ", nbRooms, " ====== ")
 
     -- ========= REGULAR DIRECTION =========
     if currentChar == "N" or currentChar == "S" or currentChar == "W" or currentChar == "E" then
-      print("Go throught one more room = ", point.toString(directions[currentChar]))
       -- Update the current point
       local newPoint = point.add(currentPoint, directions[currentChar], 2)
 
-      print("new point", point.toString(newPoint))
-
-      print(set.containsKey(visitedPoint, newPoint, point.toString))
-
-      if not set.containsKey(visitedPoint, newPoint, point.toString) then
-        set.addKey(visitedPoint, newPoint, point.toString)
+      if not set.containsKey(visitedPoint, hashFct(currentPoint, newPoint))  then
+        set.addKey(visitedPoint, hashFct(currentPoint, newPoint))
         nbDoorsPassed = nbDoorsPassed + 1
 
         -- Test if we need to add some rooms
         if nbDoorsPassed >= nbDoors then
           -- Add the room
           nbRooms = nbRooms + 1
-          print("New room found ! +1")
+          --print("New room found ! +1")
         end
       end
       -- Update the current point
@@ -153,7 +135,10 @@ local function partTwo(inputFile, nbDoors)
     -- ========= PARENTHESIS START =========
     elseif currentChar == "(" then
       -- Push the current total to keep the old one but use this one next.
-      stack.pushleft(stackCounter, {nb=nbDoorsPassed, root=currentPoint})
+      stack.pushleft(stackCounter, {nb=nbDoorsPassed, root=point.copy(currentPoint)})
+      -- Debug
+      --print("Condition start save = ", nbDoorsPassed, point.toString(currentPoint))
+
     -- ========= CONDITION PATH =========
     elseif currentChar == "|" then
       local previousStep = stack.getleft(stackCounter)
@@ -163,34 +148,19 @@ local function partTwo(inputFile, nbDoors)
         nbDoorsPassed = 0
       end
       -- Debug
-      print("Condition path : Go back to the last junction")
+      --print("Condition path : Go back to the last junction")
     -- ========= PARENTHESIS ENDING =========
     elseif currentChar == ")" then
-
-      if regexp:sub(i+1,i+1) ~= "" and string.find(regexp:sub(i+1,i+1), "[%(%|%)]") ~= nil then
-        print("End of conditional path after " .. nbDoorsPassed .. " doors : Go back to the last junction")
-        stack.popleft(stackCounter)
-        local previousStep = stack.getleft(stackCounter)
-        nbDoorsPassed = previousStep.nb
-        currentPoint = previousStep.root
-      else
-        -- If after the parentheses, there is a path following (all options converged to this final path)
-        -- Debug purpose
-        print("End of conditional path after " .. nbDoorsPassed .. " doors : continue because all conditionnal paths merged.")
-        -- Reset the number of doors passed
-        local previousStep = stack.popleft(stackCounter)
-        nbDoorsPassed = previousStep.nb
-        currentPoint = previousStep.root
-      end
+      -- Debug purpose
+      --print("End of conditional path after " .. nbDoorsPassed .. " doors : continue because all conditionnal paths merged.")
+      -- Reset the number of doors passed
+      local previousStep = stack.popleft(stackCounter)
+      nbDoorsPassed = previousStep.nb
+      currentPoint = previousStep.root
     end
-
     i = i + 1
     nbIteration = nbIteration + 1
   end
-
-  print(" ====== CurrentPoint = ", point.toString(currentPoint), " ====== ")
-  print(" ====== Nb doors passed = ", nbDoorsPassed, " ====== ")
-  print(" ====== Nb rooms tagged = ", nbRooms, " ====== ")
 
   return nbRooms
 end
@@ -204,7 +174,7 @@ function day20Main (filename, nbDoors)
   -- Read the input file and put it in a file handle
   local inputFile = assert(io.open(filename, "r"));
 
-  --local partOneResult = partOne(inputFile)
+  local partOneResult = partOne(inputFile)
 
   -- Reset the file handle position to the beginning to use it again
   inputFile:seek("set");
@@ -221,12 +191,9 @@ function day20Main (filename, nbDoors)
 
   return partTwoResult
 end
---assert(day20Main ("Day20_A_Regular_Map/example1.txt", 1) == 3)
---assert(day20Main ("Day20_A_Regular_Map/example2.txt", 5) == 11)
---assert(day20Main ("Day20_A_Regular_Map/example2.txt", 10) == 1)
-
---day20Main ("example3.txt", 5)
---day20Main ("example3.txt", 20)
+assert(day20Main ("Day20_A_Regular_Map/example1.txt", 1) == 3)
+assert(day20Main ("Day20_A_Regular_Map/example2.txt", 5) == 11)
+assert(day20Main ("Day20_A_Regular_Map/example2.txt", 10) == 1)
 
 assert(day20Main ("Day20_A_Regular_Map/example4.txt", 5) == 31)
 assert(day20Main ("Day20_A_Regular_Map/example4.txt", 10) == 25)
@@ -237,19 +204,19 @@ assert(day20Main ("Day20_A_Regular_Map/example5.txt", 25) == 20)
 assert(day20Main ("Day20_A_Regular_Map/example5.txt", 30) == 7)
 assert(day20Main ("Day20_A_Regular_Map/example5.txt", 35) == 0)
 
-assert(day20Main ("Day20_A_Regular_Map/inputBis.txt", 50) == 62)
+assert(day20Main ("Day20_A_Regular_Map/inputBis.txt", 10) == 112)
+assert(day20Main ("Day20_A_Regular_Map/inputBis.txt", 50) == 47)
+assert(day20Main ("Day20_A_Regular_Map/inputBis.txt", 60) == 32)
 
---assert(day20Main ("Day20_A_Regular_Map/input.txt", 50) == 9948)
+assert(day20Main ("Day20_A_Regular_Map/inputBis2.txt", 50) == 47)
+
+assert(day20Main ("Day20_A_Regular_Map/inputBis3.txt", 1) == 236)
+assert(day20Main ("Day20_A_Regular_Map/inputBis3.txt", 20) == 209)
+
+assert(day20Main ("Day20_A_Regular_Map/inputBis4.txt", 100) == 2184)
+
+assert(day20Main ("Day20_A_Regular_Map/input.txt", 100) == 9894)
 assert(day20Main ("Day20_A_Regular_Map/input.txt", 1000) == 8366)
-
-
---day20Main ("example6.txt", 20)
-
---day20Main ("example7.txt", 15)
---day20Main ("example7.txt", 30)
-
---day20Main ("example8.txt", 15)
---day20Main ("example8.txt", 25)
 
 
 --#################################################################

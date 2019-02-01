@@ -63,7 +63,7 @@ function add(point1, point2, dimension)
   if dimension == nil then
     dimension = 2
   end
-  local newPoint = point1
+  local newPoint = point.copy(point1)
   newPoint.x = newPoint.x + point2.x
   newPoint.y = newPoint.y + point2.y
   if dimension == 3 then
@@ -94,11 +94,27 @@ end
 ------------------------------------------------------------------------
 --
 ------------------------------------------------------------------------
+function copy(currentPoint, dimension)
+  local newPoint
+  if dimension == nil then
+    dimension = 2
+  end
+  if dimension == 2 then
+    newPoint = point.new{currentPoint.x, currentPoint.y}
+  elseif dimension == 3 then
+    newPoint = point.new{currentPoint.x, currentPoint.y, currentPoint.z}
+  end
+  return newPoint
+end
+
+------------------------------------------------------------------------
+--
+------------------------------------------------------------------------
 function toString(currentPoint, dimension)
   if dimension == nil then
     dimension = 2
   end
-  finalString = ""
+  local finalString = ""
   if dimension == 2 then
     finalString = finalString .. "(" .. currentPoint.x .. ", " .. currentPoint.y .. ")"
   elseif dimension == 3 then
@@ -118,6 +134,7 @@ point = {
   add = add,
   bubbleSortPoints = bubbleSortPoints,
   equals = equals,
+  copy = copy,
   toString = toString,
 }
 
